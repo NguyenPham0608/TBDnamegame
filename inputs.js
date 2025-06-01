@@ -1,5 +1,5 @@
 export default class InputHandler {
-    constructor() {
+    constructor(game) {
         this.keys = {
             ArrowUp: false,
             ArrowDown: false,

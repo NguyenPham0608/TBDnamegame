@@ -14,7 +14,7 @@ export default class Game {
             height: 2000
         };
 
-        this.player = new Player(400, 300, 32, 32, 1, '#ff0000', this);
+        this.player = new Player(400, 300, 32, 32, 0.5, '#ff0000', this);
         this.camera = new Camera(this.canvas.width, this.canvas.height, this);
         this.input = new InputHandler();
         this.backgroundImage = new Image();
