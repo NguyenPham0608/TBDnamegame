@@ -28,10 +28,10 @@ export default class Player {
         this.sword.update(input);
     }
 
-    render(ctx, camera) {
+    render(ctx, camera, input) {
         ctx.fillStyle = this.color;
         ctx.fillRect(this.x - camera.x, this.y - camera.y, this.width, this.height);
         // Render sword
-        this.sword.render(ctx, camera);
+        this.sword.render(ctx, camera, input);
     }
 }

@@ -43,7 +43,7 @@ export default class Game {
             }
         }
 
-        this.player.render(this.ctx, this.camera);
+        this.player.render(this.ctx, this.camera, this.input);
     }
 
     update() {
