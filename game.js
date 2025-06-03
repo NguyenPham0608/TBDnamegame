@@ -16,23 +16,21 @@ export default class Game {
 
         this.player = new Player(400, 300, 32, 32, 0.5, '#ff0000', this);
         this.camera = new Camera(this.canvas.width, this.canvas.height, this);
-        this.input = new InputHandler();
+        this.input = new InputHandler(this.canvas); // Pass canvas to InputHandler
         this.backgroundImage = new Image();
         this.backgroundImage.src = 'tile024.png';
-        this.tileSize = 32; // Assume bk.png is 256x256; adjust as needed
+        this.tileSize = 32;
     }
 
     render() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // Calculate the range of tiles to draw based on camera position
         const tileSize = this.tileSize;
         const startX = Math.floor(this.camera.x / tileSize) * tileSize;
         const startY = Math.floor(this.camera.y / tileSize) * tileSize;
         const endX = Math.ceil((this.camera.x + this.canvas.width) / tileSize) * tileSize;
         const endY = Math.ceil((this.camera.y + this.canvas.height) / tileSize) * tileSize;
 
-        // Draw tiled background
         for (let x = startX; x <= endX; x += tileSize) {
             for (let y = startY; y <= endY; y += tileSize) {
                 this.ctx.drawImage(
@@ -45,7 +43,6 @@ export default class Game {
             }
         }
 
-        // Draw player
         this.player.render(this.ctx, this.camera);
     }
 
