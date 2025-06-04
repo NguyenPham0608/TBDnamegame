@@ -23,7 +23,7 @@ export default class InputHandler {
             }
         });
 
-        this.canvas.addEventListener('mousemove', (e) => {
+        window.addEventListener('mousemove', (e) => {
             const rect = this.canvas.getBoundingClientRect();
             this.mouseX = e.clientX - rect.left;
             this.mouseY = e.clientY - rect.top;

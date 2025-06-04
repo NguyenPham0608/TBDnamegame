@@ -8,10 +8,11 @@ export default class Swish {
         this.img = new Image()
         this.img.src = "swish.svg"
         this.done = false // Flag to indicate if the Swish should be removed
+        this.scale = 1.7
     }
     render(ctx, camera) {
         this.frame++
-        if (this.frame == 3) {
+        if (this.frame == 4) {
             if (this.sword.targetDir > 0) {
                 this.img.src = "swishcw.svg"
             } else {
@@ -24,10 +25,25 @@ export default class Swish {
         }
         this.direction = this.sword.attackDir
         ctx.save()
-        console.log(this.x + this.img.width / 2 - window.innerWidth / 2 - camera.x, this.y + this.img.height / 2 - window.innerHeight / 2 - camera.y)
-        ctx.translate(this.x - camera.x + this.img.width / 2, this.y - camera.y + this.img.height / 2)
-        ctx.translate(40, 0)
-        ctx.drawImage(this.img, this.sword.player.x - window.innerWidth / 2, this.sword.player.y - window.innerHeight / 2)
+
+        // Translate to the swish's position, adjusted for camera
+        ctx.translate(this.x - camera.x, this.y - camera.y)
+
+        // Rotate the context based on this.direction (in radians)
+        ctx.rotate(this.direction + Math.PI)
+        ctx.translate(60, 0)
+
+        // Draw the image, offset to center it
+        ctx.globalAlpha = 0.4
+        ctx.drawImage(
+            this.img,
+            -this.img.width * this.scale / 2,
+            -this.img.height * this.scale / 2,
+            this.img.width * this.scale,
+            this.img.height * this.scale
+        )
+        ctx.globalAlpha = 1
+
         ctx.restore()
     }
 }

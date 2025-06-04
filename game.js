@@ -58,6 +58,7 @@ export default class Game {
     }
 
     start() {
+        this.canvasFullScreen(this.canvas, this.ctx);
         this.backgroundImage.onload = () => {
             this.gameLoop();
         };
@@ -68,8 +69,37 @@ export default class Game {
             this.gameLoop();
         };
     }
+    canvasFullScreen(canvas, ctx) {
+
+
+        // Function to resize canvas to full screen
+        function resizeCanvas() {
+            // Save current content
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = canvas.height;
+            tempCtx.drawImage(canvas, 0, 0);
+
+            // Update canvas size to match window
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            canvas.style.width = `${window.innerWidth}px`;
+            canvas.style.height = `${window.innerHeight}px`;
+
+            // Redraw content, scaling to new size
+            ctx.drawImage(tempCanvas, 0, 0, canvas.width, canvas.height);
+        }
+
+        // Initial resize
+        resizeCanvas();
+
+        // Resize on window resize
+        window.addEventListener('resize', resizeCanvas);
+    }
 }
 
 // Start the game
 const game = new Game();
 game.start();
+
