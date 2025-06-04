@@ -18,7 +18,7 @@ export default class Game {
         this.player = new Player(400, 300, 32, 32, 0.5, '#ff0000', this);
         this.enemies = [];
         for (let i = 0; i < 1; i++) {
-            this.enemies.push(new Enemy(400, 300, 32, 32, 0.5, '#ff0000', this));
+            this.enemies.push(new Enemy(800, 600, 32, 32, 0.5, '#ff0000', this));
         }
         this.camera = new Camera(this.canvas.width, this.canvas.height, this);
         this.input = new InputHandler(this.canvas); // Pass canvas to InputHandler

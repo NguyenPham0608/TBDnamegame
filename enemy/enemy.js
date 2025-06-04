@@ -21,6 +21,7 @@ export default class Enemy {
     }
     hit() {
         this.brightness = 100;
+        this.game.camera.screenShake(20);
     }
     drawColoredRect(x, y, width, height, hue, brightness, ctx) {
 

@@ -21,7 +21,6 @@ export default class Sword {
     }
 
     update(input) {
-        console.log(this.hitEnemies);
         const worldMouseX = input.mouseX + this.player.game.camera.x;
         const worldMouseY = input.mouseY + this.player.game.camera.y;
         this.mouse = {
