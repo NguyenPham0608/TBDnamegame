@@ -59,7 +59,7 @@ export default class Sword {
         }
         this.relaxSword();
         this.swingDir += this.swingSpeed;
-        this.swingSpeed += this.deltaTime * (this.targetDir - this.swingDir) / 10;
+        this.swingSpeed += (this.targetDir - this.swingDir) / 10;
         this.swingSpeed *= 0.65;
     }
 
