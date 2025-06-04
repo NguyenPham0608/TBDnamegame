@@ -24,7 +24,6 @@ export default class Camera {
             this.shakeX = this.shakeX * -0.85
             this.shakeY = this.shakeY * -0.85
         }
-        console.log(this.shakeX, this.shakeY)
     }
     screenShake(power) {
         this.shakeY = getRandomArbitrary(-180, 181)

@@ -18,9 +18,14 @@ export default class Sword {
         this.span = document.getElementById("log");
         this.hitEnemies = new Set();
         this.swingHitbox = null; // Holds the wide hitbox during swing
+        this.deltaTime = 0
     }
 
     update(input) {
+
+        this.deltaTime = this.player.game.deltaTime
+        console.log(this.player.game)
+        console
         const worldMouseX = input.mouseX + this.player.game.camera.x;
         const worldMouseY = input.mouseY + this.player.game.camera.y;
         this.mouse = {
@@ -54,7 +59,7 @@ export default class Sword {
         }
         this.relaxSword();
         this.swingDir += this.swingSpeed;
-        this.swingSpeed += 0.1 * (this.targetDir - this.swingDir);
+        this.swingSpeed += this.deltaTime * (this.targetDir - this.swingDir) / 10;
         this.swingSpeed *= 0.65;
     }
 
@@ -62,7 +67,7 @@ export default class Sword {
         this.swingDelay = 16; // Duration of the swing
         this.targetDir = dx * 170;
         this.swingDir = dx * 35;
-        this.swingSpeed = dx * 25;
+        this.swingSpeed = dx * 20;
         this.attackDir = this.direction;
         this.effects.push(new Swish(this));
         this.hitEnemies.clear(); // Reset hit enemies

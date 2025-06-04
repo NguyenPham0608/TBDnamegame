@@ -9,6 +9,8 @@ export default class Game {
         this.ctx = this.canvas.getContext('2d');
         this.canvas.width = 800;
         this.canvas.height = 600;
+        this.deltaTime = 0;
+
 
         this.world = {
             width: 2000,
@@ -21,10 +23,17 @@ export default class Game {
             this.enemies.push(new Enemy(getRandomArbitrary(-1000, 1000), getRandomArbitrary(-1000, 1000), 32, 32, 0.5, '#ff0000', this));
         }
         this.camera = new Camera(this.canvas.width, this.canvas.height, this);
-        this.input = new InputHandler(this.canvas); // Pass canvas to InputHandler
+        this.input = new InputHandler(this.canvas);
         this.backgroundImage = new Image();
         this.backgroundImage.src = 'img/tile024.png';
         this.tileSize = 32;
+        this.lastTime = performance.now();
+    }
+
+    computeDeltaTime(currentTime) {
+        this.deltaTime = (currentTime - this.lastTime) / 1000; // Convert ms to seconds
+        this.deltaTime = Math.min(this.deltaTime, 0.1); // Cap at 100ms to prevent large jumps
+        this.lastTime = currentTime;
     }
 
     render() {
@@ -53,59 +62,50 @@ export default class Game {
     }
 
     update() {
-        this.player.update(this.input, this.world);
-        this.enemies.forEach((enemy) => enemy.update(this.world));
-        this.camera.update(this.player, this.world);
+        this.player.update(this.input, this.world, this.deltaTime);
+        this.enemies.forEach((enemy) => enemy.update(this.world, this.deltaTime));
+        this.camera.update(this.player, this.world, this.deltaTime);
     }
 
-    gameLoop() {
+    gameLoop(currentTime) {
+        this.computeDeltaTime(currentTime);
         this.update();
         this.render();
-        requestAnimationFrame(() => this.gameLoop());
+        requestAnimationFrame((time) => this.gameLoop(time));
     }
 
     start() {
         this.backgroundImage.onload = () => {
-            this.gameLoop();
+            this.gameLoop(this.lastTime);
         };
         this.backgroundImage.onerror = () => {
             console.warn('Background image failed to load. Using fallback color.');
             this.ctx.fillStyle = '#333333';
             this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-            this.gameLoop();
+            this.gameLoop(this.lastTime);
         };
     }
+
     canvasFullScreen(canvas, ctx) {
-
-
-        // Function to resize canvas to full screen
         function resizeCanvas() {
-            // Save current content
             const tempCanvas = document.createElement('canvas');
             const tempCtx = tempCanvas.getContext('2d');
             tempCanvas.width = canvas.width;
             tempCanvas.height = canvas.height;
             tempCtx.drawImage(canvas, 0, 0);
 
-            // Update canvas size to match window
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             canvas.style.width = `${window.innerWidth}px`;
             canvas.style.height = `${window.innerHeight}px`;
 
-            // Redraw content, scaling to new size
             ctx.drawImage(tempCanvas, 0, 0, canvas.width, canvas.height);
         }
 
-        // Initial resize
         resizeCanvas();
-
-        // Resize on window resize
         window.addEventListener('resize', resizeCanvas);
     }
 }
 
-// Start the game
 const game = new Game();
 game.start();
-
