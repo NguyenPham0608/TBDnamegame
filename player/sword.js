@@ -43,7 +43,7 @@ export default class Sword {
         }
         this.relaxSword()
         this.swingDir += this.swingSpeed
-        this.swingSpeed += 0.07 * (this.targetDir - this.swingDir)
+        this.swingSpeed += 0.1 * (this.targetDir - this.swingDir)
         this.swingSpeed = this.swingSpeed * 0.65
     }
 

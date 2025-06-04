@@ -58,7 +58,6 @@ export default class Game {
     }
 
     start() {
-        this.canvasFullScreen(this.canvas, this.ctx);
         this.backgroundImage.onload = () => {
             this.gameLoop();
         };
