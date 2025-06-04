@@ -9,17 +9,21 @@ export default class Camera {
         this.game = game;
         this.shakeX = 0;
         this.shakeY = 0;
+        this.time = 0
     }
 
     update(player, world) {
+        this.time++
         this.realX += 0.1 * ((player.x - this.width / 2) - this.realX);
         this.realY += 0.1 * ((player.y - this.height / 2) - this.realY);
         this.realX = Math.max(0, Math.min(this.realX, world.width - this.width));
         this.realY = Math.max(0, Math.min(this.realY, world.height - this.height));
-        this.x = this.realX + this.shakeX;
-        this.y = this.realY + this.shakeY;
-        this.shakeX = this.shakeX * -0.65
-        this.shakeY = this.shakeY * -0.65
+        this.x = Math.round(this.realX + this.shakeX)
+        this.y = Math.round(this.realY + this.shakeY)
+        if (this.time % 3 == 0) {
+            this.shakeX = this.shakeX * -0.85
+            this.shakeY = this.shakeY * -0.85
+        }
         console.log(this.shakeX, this.shakeY)
     }
     screenShake(power) {
