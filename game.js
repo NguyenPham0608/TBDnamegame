@@ -1,6 +1,7 @@
 import Player from './player/player.js';
 import Camera from './camera.js';
 import InputHandler from './inputs.js';
+import Enemy from './enemy/enemy.js';
 
 export default class Game {
     constructor() {
@@ -15,6 +16,10 @@ export default class Game {
         };
 
         this.player = new Player(400, 300, 32, 32, 0.5, '#ff0000', this);
+        this.enemies = [];
+        for (let i = 0; i < 1; i++) {
+            this.enemies.push(new Enemy(400, 300, 32, 32, 0.5, '#ff0000', this));
+        }
         this.camera = new Camera(this.canvas.width, this.canvas.height, this);
         this.input = new InputHandler(this.canvas); // Pass canvas to InputHandler
         this.backgroundImage = new Image();
@@ -43,11 +48,13 @@ export default class Game {
             }
         }
 
+        this.enemies.forEach((enemy) => enemy.render(this.ctx, this.camera));
         this.player.render(this.ctx, this.camera, this.input);
     }
 
     update() {
         this.player.update(this.input, this.world);
+        this.enemies.forEach((enemy) => enemy.update(this.world));
         this.camera.update(this.player, this.world);
     }
 
