@@ -33,8 +33,9 @@ export default class Sword {
     }
 
     processSwing(input) {
+        console.table(input)
         this.swingDelay--
-        if (input.keys.Space) {
+        if (input.keys.Space || input.mouseDown) {
             if (this.swingDelay < 1 && Math.abs(this.targetDir) == 150) {
                 this.beginSwing(this.targetDir / -150)
             }
@@ -43,8 +44,8 @@ export default class Sword {
         }
         this.relaxSword()
         this.swingDir += this.swingSpeed
-        this.swingSpeed += 0.2 * (this.targetDir - this.swingDir)
-        this.swingSpeed = this.swingSpeed * 0.75
+        this.swingSpeed += 0.1 * (this.targetDir - this.swingDir)
+        this.swingSpeed = this.swingSpeed * 0.65
     }
 
     beginSwing(dx) {

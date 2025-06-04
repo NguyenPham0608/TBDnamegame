@@ -12,14 +12,14 @@ export default class Swish {
     }
     render(ctx, camera) {
         this.frame++
-        if (this.frame == 4) {
+        if (this.frame == 3) {
             if (this.sword.targetDir > 0) {
                 this.img.src = "img/swishcw.svg"
             } else {
                 this.img.src = "img/swishccw.svg"
             }
         }
-        if (this.frame > 6) {
+        if (this.frame > 5) {
             this.done = true // Mark for deletion
             return // Exit early to skip rendering
         }
@@ -34,7 +34,7 @@ export default class Swish {
         ctx.translate(60, 0)
 
         // Draw the image, offset to center it
-        ctx.globalAlpha = 0.4
+        ctx.globalAlpha = 0.9
         ctx.drawImage(
             this.img,
             -this.img.width * this.scale / 2,

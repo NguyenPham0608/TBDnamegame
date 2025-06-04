@@ -20,10 +20,10 @@ export default class Player {
     }
 
     update(input, world) {
-        if (input.keys.ArrowUp) this.sy -= 1;
-        if (input.keys.ArrowDown) this.sy += 1;
-        if (input.keys.ArrowLeft) this.sx -= 1;
-        if (input.keys.ArrowRight) this.sx += 1;
+        if (input.keys.ArrowUp || input.keys.KeyW) this.sy -= 1;
+        if (input.keys.ArrowDown || input.keys.KeyS) this.sy += 1;
+        if (input.keys.ArrowLeft || input.keys.KeyA) this.sx -= 1;
+        if (input.keys.ArrowRight || input.keys.KeyD) this.sx += 1;
         this.sx *= 0.9;
         this.sy *= 0.9;
         this.x += this.sx * this.speed;
