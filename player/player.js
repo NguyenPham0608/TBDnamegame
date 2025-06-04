@@ -12,6 +12,11 @@ export default class Player {
         this.color = color;
         this.game = game;
         this.sword = new Sword(this); // Initialize sword
+        this.img = new Image();
+        this.img.src = "img/kid.svg";
+        this.width = 26 * 2;
+        this.height = 39 * 2
+        console.log(this.img)
     }
 
     update(input, world) {
@@ -30,7 +35,8 @@ export default class Player {
 
     render(ctx, camera, input) {
         ctx.fillStyle = this.color;
-        ctx.fillRect(this.x - camera.x, this.y - camera.y, this.width, this.height);
+        // ctx.fillRect(this.x - camera.x, this.y - camera.y, this.width, this.height);
+        ctx.drawImage(this.img, this.x - camera.x, this.y - camera.y, this.width, this.height);
         // Render sword
         this.sword.render(ctx, camera, input);
     }

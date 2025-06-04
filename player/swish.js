@@ -6,7 +6,7 @@ export default class Swish {
         this.x = sword.player.x
         this.y = sword.player.y
         this.img = new Image()
-        this.img.src = "swish.svg"
+        this.img.src = "img/swish.svg"
         this.done = false // Flag to indicate if the Swish should be removed
         this.scale = 1.7
     }
@@ -14,9 +14,9 @@ export default class Swish {
         this.frame++
         if (this.frame == 4) {
             if (this.sword.targetDir > 0) {
-                this.img.src = "swishcw.svg"
+                this.img.src = "img/swishcw.svg"
             } else {
-                this.img.src = "swishccw.svg"
+                this.img.src = "img/swishccw.svg"
             }
         }
         if (this.frame > 6) {

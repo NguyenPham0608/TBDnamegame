@@ -8,7 +8,7 @@ export default class Sword {
         this.swinging = false;
         this.swingSpeed = 0; // Adjust for swing speed
         this.image = new Image();
-        this.image.src = 'sword.svg'; // Assumes a sword image exists
+        this.image.src = 'img/sword.svg'; // Assumes a sword image exists
         this.startSwingAngle = 0
         this.armLength = 20
         this.targetDir = -150
@@ -19,7 +19,6 @@ export default class Sword {
         this.direction = 0
         this.mouse = { x: 0, y: 0 }
         this.effects = []
-        this.effects.push(new Swish(this))
         this.span = document.getElementById("log")
     }
 

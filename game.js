@@ -1,4 +1,4 @@
-import Player from './player.js';
+import Player from './player/player.js';
 import Camera from './camera.js';
 import InputHandler from './inputs.js';
 
@@ -18,7 +18,7 @@ export default class Game {
         this.camera = new Camera(this.canvas.width, this.canvas.height, this);
         this.input = new InputHandler(this.canvas); // Pass canvas to InputHandler
         this.backgroundImage = new Image();
-        this.backgroundImage.src = 'tile024.png';
+        this.backgroundImage.src = 'img/tile024.png';
         this.tileSize = 32;
     }
 
