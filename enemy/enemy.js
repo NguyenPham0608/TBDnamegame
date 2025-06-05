@@ -16,7 +16,11 @@ export default class Enemy {
         this.health = 100
         this.timeleft = -1
         this.distance = 0
-
+        this.enemyPositions = []
+        this.img = new Image()
+        this.img.src = "img/enemy.svg"
+        this.width = this.img.width / 2
+        this.height = this.img.height / 2
     }
 
     update(world) {
@@ -38,13 +42,18 @@ export default class Enemy {
         this.x += this.sx
         this.y += this.sy
     }
+
     render(ctx, camera) {
-        ctx.fillStyle = this.color;
-        this.brightness += 0.1 * (50 - this.brightness)
-        this.drawColoredRect(this.x - camera.x, this.y - camera.y, this.width, this.height, 0, this.brightness, ctx);
+        ctx.save();
+        this.brightness += 0.1 * (100 - this.brightness)
+
+        ctx.filter = `brightness(${this.brightness}%)`;
+
+        ctx.drawImage(this.img, this.x - camera.x, this.y - camera.y, this.width, this.height);
+        ctx.restore();
     }
     hit() {
-        this.brightness = 100;
+        this.brightness = 900;
         this.game.camera.screenShake(2);
         this.health -= 20
         if (this.health <= 0) {
@@ -55,9 +64,5 @@ export default class Enemy {
     kill() {
         this.game.enemies.splice(this.game.enemies.indexOf(this), 1)
     }
-    drawColoredRect(x, y, width, height, hue, brightness, ctx) {
 
-        ctx.fillStyle = `hsl(${hue}, 100%, ${brightness}%)`;
-        ctx.fillRect(x, y, width, height);
-    }
 }

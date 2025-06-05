@@ -24,7 +24,6 @@ export default class Sword {
     update(input) {
 
         this.deltaTime = this.player.game.deltaTime
-        console.log(this.player.game)
         console
         const worldMouseX = input.mouseX + this.player.game.camera.x;
         const worldMouseY = input.mouseY + this.player.game.camera.y;
@@ -58,9 +57,10 @@ export default class Sword {
             this.returnSword();
         }
         this.relaxSword();
-        this.swingDir += this.swingSpeed;
+        this.swingDir += this.swingSpeed * 30 * this.deltaTime;
         this.swingSpeed += (this.targetDir - this.swingDir) / 10;
-        this.swingSpeed *= 0.65;
+        this.swingSpeed *= 0.75;
+
     }
 
     beginSwing(dx) {
