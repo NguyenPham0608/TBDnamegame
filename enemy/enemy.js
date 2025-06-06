@@ -1,3 +1,4 @@
+import Projectile from "../projectile.js";
 export default class Enemy {
     constructor(x, y, width, height, speed, color, game) {
         this.x = x;
@@ -36,7 +37,10 @@ export default class Enemy {
     }
 
     update(world) {
-
+        const random = getRandomArbitrary(0, 100)
+        if (random < 1) {
+            this.fire(10, 10)
+        }
         this.targetNx = this.player.x - this.x
         this.targetNy = this.player.y - this.y
         this.distance = Math.hypot(this.targetNx, this.targetNy)
@@ -50,6 +54,9 @@ export default class Enemy {
         console.log(Math.sin(this.bestDir))
         this.hitbox = { left: this.x, top: this.y + this.z, right: this.x + this.width, bottom: this.y + this.z + this.height };
 
+    }
+    fire(speed, damage) {
+        this.game.projectiles.push(new Projectile(this.x + this.width / 2, this.y + this.height / 2, Math.atan2(this.player.y - this.y, this.player.x - this.x), speed, damage, this.game))
     }
     findBestDirection(directions) {
         let bestScore = null

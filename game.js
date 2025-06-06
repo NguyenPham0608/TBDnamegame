@@ -19,6 +19,8 @@ export default class Game {
 
         this.player = new Player(400, 300, 32, 32, 0.5, '#ff0000', this);
         this.enemies = [];
+        this.projectiles = [];
+
         for (let i = 0; i < 10; i++) {
             this.enemies.push(new Enemy(getRandomArbitrary(0, this.world.width / 2), getRandomArbitrary(0, this.world.height / 2), 32, 32, 1, '#ff0000', this));
         }
@@ -59,12 +61,14 @@ export default class Game {
 
         this.enemies.forEach((enemy) => enemy.render(this.ctx, this.camera));
         this.player.render(this.ctx, this.camera, this.input);
+        this.projectiles.forEach((projectile) => projectile.render(this.ctx, this.camera));
     }
 
     update() {
         this.player.update(this.input, this.world, this.deltaTime);
         this.enemies.forEach((enemy) => enemy.update(this.world, this.deltaTime));
         this.camera.update(this.player, this.world, this.deltaTime);
+        this.projectiles.forEach((projectile) => projectile.update());
     }
 
     gameLoop(currentTime) {
