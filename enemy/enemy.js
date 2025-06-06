@@ -34,12 +34,22 @@ export default class Enemy {
         this.player = this.game.player
         this.avoidDist = 0
         this.z = 0
+        this.fireTime = -1
     }
 
     update(world) {
-        const random = getRandomArbitrary(0, 100)
+        this.fireTime--
+        const random = getRandomArbitrary(0, 300)
         if (random < 1) {
-            this.fire(10, 10)
+            this.fireTime = 30
+        }
+
+        if (this.fireTime == 0) {
+            this.fire(5, 10)
+        } else if (this.fireTime >= 0) {
+            this.img.src = "img/kidSpit.svg"
+        } else {
+            this.img.src = "img/kid.svg"
         }
         this.targetNx = this.player.x - this.x
         this.targetNy = this.player.y - this.y
@@ -56,7 +66,7 @@ export default class Enemy {
 
     }
     fire(speed, damage) {
-        this.game.projectiles.push(new Projectile(this.x + this.width / 2, this.y + this.height / 2, Math.atan2(this.player.y - this.y, this.player.x - this.x), speed, damage, this.game))
+        this.game.projectiles.push(new Projectile(this.x + this.width / 2, this.y + this.height / 2, Math.atan2((this.player.y - this.y) - this.game.camera.y, (this.player.x - this.x) - this.game.camera.x), speed, damage, this.game))
     }
     findBestDirection(directions) {
         let bestScore = null
