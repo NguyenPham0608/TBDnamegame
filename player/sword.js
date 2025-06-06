@@ -6,7 +6,7 @@ export default class Sword {
         this.armLength = 20;
         this.swingSpeed = 0;
         this.image = new Image();
-        this.image.src = 'img/sword.svg';
+        this.image.src = 'img/sword2.svg';
         this.targetDir = -150;
         this.swingDelay = 0;
         this.swingDir = 150;
@@ -128,7 +128,7 @@ export default class Sword {
         ctx.rotate(this.degreesToRadians(this.swingDir * 0.4));
         this.direction = this.mouseAngle + this.degreesToRadians(this.swingDir * 0.6) + this.degreesToRadians(this.swingDir * 0.4);
         if (this.image.complete) {
-            ctx.drawImage(this.image, 0, -this.image.height / 6, this.image.width / 3, this.image.height / 3);
+            ctx.drawImage(this.image, 0, -this.image.height / 4, this.image.width / 2, this.image.height / 2);
         } else {
             ctx.fillStyle = 'black';
             ctx.fillRect(0, 0, 80, 10);

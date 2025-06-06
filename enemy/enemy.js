@@ -18,31 +18,105 @@ export default class Enemy {
         this.distance = 0
         this.enemyPositions = []
         this.img = new Image()
-        this.img.src = "img/enemy.svg"
-        this.width = this.img.width / 2
-        this.height = this.img.height / 2
+        this.img.src = "img/kid.svg"
+        this.width = 70 / 2
+        this.height = 100 / 2
+        this.bounce = getRandomArbitrary(0, 360)
+        this.orbitDist = getRandomArbitrary(50, 200)
+        this.id = this.game.enemies.length
+        this.targetNx = 0
+        this.targetNy = 0
+        this.snx = 0
+        this.sny = 0
+        this.bestDir = 0
+        this.speed = getRandomArbitrary(1, 3)
+        this.player = this.game.player
+        this.avoidDist = 0
+        this.z = 0
     }
 
     update(world) {
-        this.hitbox = { left: this.x, top: this.y, right: this.x + this.width, bottom: this.y + this.height };
 
-        this.dx = this.game.player.x - this.x
-        this.dy = this.game.player.y - this.y
-        this.distance = Math.hypot(this.dx, this.dy)
-        this.angle = Math.atan2(this.dy, this.dx)
-        this.sx += Math.cos(this.angle) / 4
-        this.sy += Math.sin(this.angle) / 4
-        if (this.timeleft >= 0) {
-            this.timeleft--
-            this.sy -= 0.3
-            if (this.timeleft == 0) {
-                this.kill()
+        this.targetNx = this.player.x - this.x
+        this.targetNy = this.player.y - this.y
+        this.distance = Math.hypot(this.targetNx, this.targetNy)
+        this.targetNx /= this.distance
+        this.targetNy /= this.distance
+
+        this.findBestDirection(52)
+        this.moveWithMomentum(0.2, Math.sin(this.bestDir), Math.cos(this.bestDir))
+        this.bounce += 0.2
+        this.z = Math.abs(8 * Math.sin(this.bounce))
+        console.log(Math.sin(this.bestDir))
+        this.hitbox = { left: this.x, top: this.y + this.z, right: this.x + this.width, bottom: this.y + this.z + this.height };
+
+    }
+    findBestDirection(directions) {
+        let bestScore = null
+        let score = 0
+        let dir = 0
+        for (let i = 0; i < directions; i++) {
+            const dirNx = Math.sin(dir)
+            const dirNy = Math.cos(dir)
+            score = (dirNx * this.targetNx) + (dirNy * this.targetNy)
+            if (this.distance < this.orbitDist) {
+                score = 1 - (Math.abs(score))
+                score += score * ((this.snx * dirNx) + (this.sny * dirNy))
+            }
+            this.checkIfDirBlocked(dirNx, dirNy)
+            if (this.avoidDist) {
+
+            }
+            if (score > bestScore) {
+                bestScore = score
+                this.bestDir = dir
+            }
+            // this.drawLineFrom(30, 45 + (score * 15), dirNx, dirNy)
+            dir += Math.PI * 2 / directions
+        }
+    }
+    checkIfDirBlocked(dirNx, dirNy) {
+        const enemies = this.game.enemies
+        let avoidDx = 0
+        let avoidDy = 0
+
+        for (let i = 0; i < enemies.length; i++) {
+            if (i !== this.id) {
+                avoidDx = enemies[i].x
+                avoidDy = enemies[i].y
+                this.avoidDist = 0
+                if (avoidDx) {
+                    avoidDx = avoidDx - this.x
+                    avoidDy = avoidDy - this.y
+                    this.avoidDist = Math.hypot(avoidDx, avoidDy)
+                    if (this.avoidDist < 55) {
+                        this.avoidDist = ((avoidDx * dirNx) + (avoidDy * dirNy)) / this.avoidDist
+                        if (this.avoidDist > 0.7) {
+                            return
+                        }
+                    }
+                }
             }
         }
-        this.x += this.sx
-        this.y += this.sy
-        this.sx *= 0.9
-        this.sy *= 0.9
+        this.avoidDist = null
+    }
+    moveWithMomentum(percent, nx, ny) {
+        this.snx += (nx - this.snx) * percent
+        this.sny += (ny - this.sny) * percent
+        this.x += this.snx * this.speed
+        this.y += this.sny * this.speed
+        // this.x = 0
+        // this.y = 0
+    }
+    drawLineFrom(start, end, dirNx, dirNy) {
+        const game = this.game
+        const ctx = game.ctx
+        console.log(start, end, dirNx, dirNy)
+        ctx.beginPath();
+        ctx.fillStyle = 'red';
+        ctx.moveTo((this.x - game.camera.x) + (start * convertAngle(dirNx, "deg")), (this.y - game.camera.y) + (start * convertAngle(dirNy, "deg")))
+        ctx.lineTo((this.x - game.camera.x) + (end * convertAngle(dirNx, "deg")), (this.y - game.camera.y) + (end * convertAngle(dirNy, "deg")))
+        ctx.stroke()
     }
 
     render(ctx, camera) {
@@ -51,7 +125,12 @@ export default class Enemy {
 
         ctx.filter = `brightness(${this.brightness}%)`;
 
-        ctx.drawImage(this.img, this.x - camera.x, this.y - camera.y, this.width, this.height);
+        if (this.img) {
+            ctx.drawImage(this.img, this.x - camera.x, this.y + this.z - camera.y, this.width, this.height);
+        } else {
+            ctx.fillRect(this.x - camera.x, (this.y + this.z) - camera.y, this.width, this.height);
+
+        }
         ctx.restore();
     }
     hit() {

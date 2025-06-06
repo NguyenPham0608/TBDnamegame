@@ -13,7 +13,7 @@ export default class Player {
         this.game = game;
         this.sword = new Sword(this); // Initialize sword
         this.img = new Image();
-        this.img.src = "img/kid.svg";
+        this.img.src = "img/player3.svg";
         this.width = 26 * 2;
         this.height = 39 * 2
         console.log(this.img)
