@@ -1,10 +1,11 @@
 export default class Projectile {
-    constructor(x, y, direction, speed, game) {
+    constructor(x, y, direction, speed, damage, game) {
         this.x = x;
         this.y = y;
         this.direction = direction;
         this.speed = speed;
         this.game = game;
+        this.camera = game.camera
         this.rotate = 0
         this.img = new Image()
         this.img.src = "img/enemy.svg"
@@ -13,6 +14,16 @@ export default class Projectile {
         this.rotate += 10
         this.x += Math.sin(this.direction) * this.speed;
         this.y += Math.cos(this.direction) * this.speed;
+        if (this.x - this.camera.x < 0 || this.x - this.camera.x > this.game.canvas.width || this.y - this.game.camera.y < 0 || this.y - this.game.camera.y > this.game.canvas.height) {
+            this.delete()
+        }
+        const dx = this.game.player.x - this.x
+        const dy = this.game.player.y - this.y
+        this.distance = Math.hypot(dx, dy)
+        if (this.distance < 60) {
+            this.game.player.hit()
+            this.delete()
+        }
     }
     render(ctx, camera) {
         ctx.fillStyle = "red";
