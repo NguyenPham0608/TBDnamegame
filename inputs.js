@@ -12,6 +12,7 @@ export default class InputHandler {
             KeyD: false,
             Space: false,
             KeyE: false,
+            KeyP: false, // Added for toggling enemy placement mode
             Digit1: false,
             Digit2: false,
             Digit3: false,
@@ -21,7 +22,7 @@ export default class InputHandler {
             Digit7: false,
             Digit8: false,
             Digit9: false,
-            KeyL: false // Added for load
+            KeyL: false
         };
         this.mouseX = 0;
         this.mouseY = 0;
