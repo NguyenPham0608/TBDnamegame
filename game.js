@@ -24,7 +24,7 @@ export default class Game {
             img.src = `img/tile${i}.png`;
             this.tileImages.push(img);
         }
-        this.grassImages = []
+        this.grassImages = []; // Fixed typo: grassImagess -> grassImages
         for (let i = 0; i < 5; i++) {
             let img = new Image();
             img.src = `img/grass/tile${i + 1}.png`;
@@ -45,9 +45,9 @@ export default class Game {
 
         this.editorMode = false;
         this.selectedTileIndex = 0;
-        this.placeEnemyMode = false; // New: Toggle for enemy placement
+        this.placeEnemyMode = false;
         this.prevKeyE = false;
-        this.prevKeyP = false; // For toggling enemy mode
+        this.prevKeyP = false;
         this.prevKeyS = false;
         this.prevKeyL = false;
         this.prevMouseDown = false;
@@ -87,10 +87,11 @@ export default class Game {
                 parsedData.tiles.length === 64 &&
                 parsedData.tiles.every(row => Array.isArray(row) &&
                     row.length === 64 &&
-                    row.every(cell => Number.isInteger(cell) && cell >= 0 && cell < 9))) {
+                    row.every(cell => Number.isInteger(cell) && cell >= 0 && cell < 9 ||
+                        (Math.floor(cell) === 2 && cell >= 2.1 && cell <= 2.5 && Number(cell.toFixed(1)) === cell)))) {
                 this.tileData = parsedData.tiles.map(row => row.slice());
             } else {
-                console.error("Invalid tile data: must be a 64x64 array of integers between 0 and 8");
+                console.error("Invalid tile data: must be a 64x64 array of integers 0-8 or decimals 2.1-2.5");
                 return;
             }
             // Validate and load enemies
@@ -128,7 +129,23 @@ export default class Game {
                 const tileGridY = Math.floor(y / tileSize);
                 if (tileGridX >= 0 && tileGridX < this.tileData[0].length && tileGridY >= 0 && tileGridY < this.tileData.length) {
                     const tileIndex = this.tileData[tileGridY][tileGridX];
-                    if (this.tileImages[tileIndex]) {
+                    if (tileIndex >= 2.1 && tileIndex <= 2.5) {
+                        // Render grass variant
+                        const grassIndex = Math.floor((tileIndex - 2) * 10) - 1; // Convert 2.1 -> 0, 2.2 -> 1, etc.
+                        if (this.grassImages[grassIndex]) {
+                            this.ctx.drawImage(
+                                this.grassImages[grassIndex],
+                                x - this.camera.x,
+                                y - this.camera.y,
+                                tileSize,
+                                tileSize
+                            );
+                        } else {
+                            this.ctx.fillStyle = '#000000';
+                            this.ctx.fillRect(x - this.camera.x, y - this.camera.y, tileSize, tileSize);
+                        }
+                    } else if (this.tileImages[tileIndex]) {
+                        // Render regular tile
                         this.ctx.drawImage(
                             this.tileImages[tileIndex],
                             x - this.camera.x,
@@ -163,23 +180,28 @@ export default class Game {
                 const drawX = tileGridX * this.tileSize - this.camera.x;
                 const drawY = tileGridY * this.tileSize - this.camera.y;
                 if (this.placeEnemyMode) {
-                    // Enemy silhouette
                     this.ctx.save();
                     this.ctx.globalAlpha = 0.5;
                     this.ctx.drawImage(
                         this.enemies[0]?.img || new Image(),
                         drawX,
                         drawY,
-                        35, // Width from Enemy class (70/2)
-                        50  // Height from Enemy class (100/2)
+                        35,
+                        50
                     );
                     this.ctx.strokeStyle = 'white';
                     this.ctx.lineWidth = 2;
                     this.ctx.strokeRect(drawX, drawY, 35, 50);
                     this.ctx.restore();
                 } else {
-                    // Tile silhouette
-                    const selectedTileImg = this.tileImages[this.selectedTileIndex];
+                    let selectedTileImg;
+                    if (this.selectedTileIndex === 2) {
+                        // Show random grass image for silhouette
+                        const randomGrassIndex = Math.floor(Math.random() * this.grassImages.length);
+                        selectedTileImg = this.grassImages[randomGrassIndex];
+                    } else {
+                        selectedTileImg = this.tileImages[this.selectedTileIndex];
+                    }
                     if (selectedTileImg) {
                         this.ctx.save();
                         this.ctx.globalAlpha = 0.5;
@@ -192,17 +214,21 @@ export default class Game {
                 }
             }
 
-            // Draw tile preview in top-left corner
             if (!this.placeEnemyMode) {
-                const selectedTileImg = this.tileImages[this.selectedTileIndex];
-                if (selectedTileImg) {
-                    this.ctx.drawImage(selectedTileImg, 10, 10, 16, 16);
+                let previewTileImg;
+                if (this.selectedTileIndex === 2) {
+                    const randomGrassIndex = Math.floor(Math.random() * this.grassImages.length);
+                    previewTileImg = this.grassImages[randomGrassIndex];
+                } else {
+                    previewTileImg = this.tileImages[this.selectedTileIndex];
+                }
+                if (previewTileImg) {
+                    this.ctx.drawImage(previewTileImg, 10, 10, 16, 16);
                     this.ctx.strokeStyle = 'white';
                     this.ctx.lineWidth = 1;
                     this.ctx.strokeRect(10, 10, 16, 16);
                 }
             } else {
-                // Draw enemy preview in top-left corner
                 this.ctx.save();
                 this.ctx.drawImage(
                     this.enemies[0]?.img || new Image(),
@@ -225,7 +251,6 @@ export default class Game {
         this.prevKeyE = this.input.keys.KeyE;
 
         if (this.editorMode) {
-            // Toggle enemy placement mode with 'P'
             if (this.input.keys.KeyP && !this.prevKeyP) {
                 this.placeEnemyMode = !this.placeEnemyMode;
             }
@@ -263,13 +288,17 @@ export default class Game {
                 const tileGridY = Math.floor(worldY / this.tileSize);
                 if (tileGridX >= 0 && tileGridX < this.tileData[0].length && tileGridY >= 0 && tileGridY < this.tileData.length) {
                     if (this.placeEnemyMode) {
-                        // Place enemy at center of tile
                         const enemyX = tileGridX * this.tileSize + this.tileSize / 2;
                         const enemyY = tileGridY * this.tileSize + this.tileSize / 2;
                         this.enemies.push(new Enemy(enemyX, enemyY, 32, 32, 1, '#ff0000', this));
                     } else {
-                        // Place tile
-                        this.tileData[tileGridY][tileGridX] = this.selectedTileIndex;
+                        if (this.selectedTileIndex === 2) {
+                            // Place random grass tile
+                            const randomGrassIndex = Math.floor(Math.random() * this.grassImages.length) + 1;
+                            this.tileData[tileGridY][tileGridX] = 2 + (randomGrassIndex / 10); // e.g., 2.1, 2.2, etc.
+                        } else {
+                            this.tileData[tileGridY][tileGridX] = this.selectedTileIndex;
+                        }
                     }
                 }
             }
@@ -301,14 +330,21 @@ export default class Game {
 
     start() {
         let imagesLoaded = 0;
-        const totalImages = this.tileImages.length;
+        const totalImages = this.tileImages.length + this.grassImages.length;
+        const checkAllLoaded = () => {
+            imagesLoaded++;
+            if (imagesLoaded === totalImages) {
+                this.gameLoop(this.lastTime);
+            }
+        };
         this.tileImages.forEach((img) => {
-            img.onload = () => {
-                imagesLoaded++;
-                if (imagesLoaded === totalImages) {
-                    this.gameLoop(this.lastTime);
-                }
+            img.onload = checkAllLoaded;
+            img.onerror = () => {
+                console.error(`Failed to load image: ${img.src}`);
             };
+        });
+        this.grassImages.forEach((img) => {
+            img.onload = checkAllLoaded;
             img.onerror = () => {
                 console.error(`Failed to load image: ${img.src}`);
             };
