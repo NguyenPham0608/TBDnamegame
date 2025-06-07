@@ -10,11 +10,22 @@ export default class InputHandler {
             KeyA: false,
             KeyS: false,
             KeyD: false,
-            Space: false, // Added spacebar
+            Space: false,
+            KeyE: false,
+            Digit1: false,
+            Digit2: false,
+            Digit3: false,
+            Digit4: false,
+            Digit5: false,
+            Digit6: false,
+            Digit7: false,
+            Digit8: false,
+            Digit9: false,
+            KeyL: false // Added for load
         };
-        this.mouseX = 0; // Added mouse X
-        this.mouseY = 0; // Added mouse Y
-        this.mouseDown = false
+        this.mouseX = 0;
+        this.mouseY = 0;
+        this.mouseDown = false;
 
         document.addEventListener('keydown', (e) => {
             if (e.code in this.keys) {

@@ -81,7 +81,6 @@ export default class Enemy {
 
     }
     fire(speed, damage, accuracy) {
-        console.log(this.player.x, this.player.y)
         const camera = this.game.camera
         const player = this.player
         const dx = ((player.x - camera.x) - (this.x - camera.x))
