@@ -2,7 +2,7 @@ import Player from './player/player.js';
 import Camera from './camera.js';
 import InputHandler from './inputs.js';
 import Enemy from './enemy/enemy.js';
-
+import Particle from './particle.js';
 export default class Game {
     constructor() {
         this.canvas = document.getElementById('gameCanvas');
@@ -20,8 +20,9 @@ export default class Game {
         this.player = new Player(400, 300, 32, 32, 0.5, '#ff0000', this);
         this.enemies = [];
         this.projectiles = [];
+        this.particles = [];
 
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 5; i++) {
             this.enemies.push(new Enemy(getRandomArbitrary(0, this.world.width / 2), getRandomArbitrary(0, this.world.height / 2), 32, 32, 1, '#ff0000', this));
         }
         this.camera = new Camera(this.canvas.width, this.canvas.height, this);
@@ -62,6 +63,7 @@ export default class Game {
         this.enemies.forEach((enemy) => enemy.render(this.ctx, this.camera));
         this.player.render(this.ctx, this.camera, this.input);
         this.projectiles.forEach((projectile) => projectile.render(this.ctx, this.camera));
+        this.particles.forEach((particle) => particle.render(this.ctx, this.camera));
     }
 
     update() {
@@ -69,6 +71,7 @@ export default class Game {
         this.enemies.forEach((enemy) => enemy.update(this.world, this.deltaTime));
         this.camera.update(this.player, this.world, this.deltaTime);
         this.projectiles.forEach((projectile) => projectile.update());
+        this.particles.forEach((particle) => particle.update());
     }
 
     gameLoop(currentTime) {

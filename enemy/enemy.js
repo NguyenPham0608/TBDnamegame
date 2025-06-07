@@ -1,4 +1,5 @@
 import Projectile from "../projectile.js";
+import Particle from "../particle.js";
 export default class Enemy {
     constructor(x, y, width, height, speed, color, game) {
         this.x = x;
@@ -35,17 +36,32 @@ export default class Enemy {
         this.avoidDist = 0
         this.z = 0
         this.fireTime = -1
+        this.directions = []
+        this.return = false
+        this.strokestyle = "blue"
+    }
+    particleExplosion() {
+        for (let i = 0; i < 50; i++) {
+            this.game.particles.push(new Particle(this.x, this.y, "explosion", this.game))
+        }
+        this.game.camera.screenShake(8)
     }
 
     update(world) {
+        // this.particleExplosion()
         this.fireTime--
+        this.timeleft--
+        if (this.timeleft == 0) {
+            this.particleExplosion()
+            this.kill()
+        }
         const random = getRandomArbitrary(0, 300)
         if (random < 1) {
             this.fireTime = 30
         }
 
         if (this.fireTime == 0) {
-            this.fire(5, 10)
+            this.fire(5, 10, getRandomArbitrary(50, 100))
         } else if (this.fireTime >= 0) {
             this.img.src = "img/kidSpit.svg"
         } else {
@@ -57,16 +73,21 @@ export default class Enemy {
         this.targetNx /= this.distance
         this.targetNy /= this.distance
 
-        this.findBestDirection(52)
-        this.moveWithMomentum(0.2, Math.sin(this.bestDir), Math.cos(this.bestDir))
+        this.findBestDirection(30)
+        this.moveWithMomentum(0.05, Math.sin(this.bestDir), Math.cos(this.bestDir))
         this.bounce += 0.2
         this.z = Math.abs(8 * Math.sin(this.bounce))
-        console.log(Math.sin(this.bestDir))
         this.hitbox = { left: this.x, top: this.y + this.z, right: this.x + this.width, bottom: this.y + this.z + this.height };
 
     }
-    fire(speed, damage) {
-        this.game.projectiles.push(new Projectile(this.x + this.width / 2, this.y + this.height / 2, Math.atan2((this.player.y - this.y) - this.game.camera.y, (this.player.x - this.x) - this.game.camera.x), speed, damage, this.game))
+    fire(speed, damage, accuracy) {
+        console.log(this.player.x, this.player.y)
+        const camera = this.game.camera
+        const player = this.player
+        const dx = ((player.x - camera.x) - (this.x - camera.x))
+        const dy = ((player.y - camera.y) - (this.y - camera.y))
+        const aimAngle = Math.atan2(dy, dx) + ((4 * Math.PI) * ((1 / accuracy) - 1 / 100))
+        this.game.projectiles.push(new Projectile(this.x + this.width / 2, this.y + this.height / 2, aimAngle, speed, damage, this.game))
     }
     findBestDirection(directions) {
         let bestScore = null
@@ -75,23 +96,31 @@ export default class Enemy {
         for (let i = 0; i < directions; i++) {
             const dirNx = Math.sin(dir)
             const dirNy = Math.cos(dir)
+            this.return = false
             score = (dirNx * this.targetNx) + (dirNy * this.targetNy)
             if (this.distance < this.orbitDist) {
                 score = 1 - (Math.abs(score))
                 score += score * ((this.snx * dirNx) + (this.sny * dirNy))
             }
             this.checkIfDirBlocked(dirNx, dirNy)
-            if (this.avoidDist) {
-
+            if (this.return) {
+                return;
+            }
+            if (this.avoidDist > 0) {
+                this.strokestyle = "red"
+            } else {
+                this.strokestyle = "blue"
             }
             if (score > bestScore) {
                 bestScore = score
                 this.bestDir = dir
             }
-            // this.drawLineFrom(30, 45 + (score * 15), dirNx, dirNy)
+            const scoreLength = 45 + (score * 15)
+            // this.directions.push({ length: scoreLength, dirNx: dirNx, dirNy: dirNy })
             dir += Math.PI * 2 / directions
         }
     }
+
     checkIfDirBlocked(dirNx, dirNy) {
         const enemies = this.game.enemies
         let avoidDx = 0
@@ -109,6 +138,7 @@ export default class Enemy {
                     if (this.avoidDist < 55) {
                         this.avoidDist = ((avoidDx * dirNx) + (avoidDy * dirNy)) / this.avoidDist
                         if (this.avoidDist > 0.7) {
+                            this.return = true
                             return
                         }
                     }
@@ -120,20 +150,16 @@ export default class Enemy {
     moveWithMomentum(percent, nx, ny) {
         this.snx += (nx - this.snx) * percent
         this.sny += (ny - this.sny) * percent
-        this.x += this.snx * this.speed
-        this.y += this.sny * this.speed
+        this.x += this.snx * this.speed * 60 * this.game.deltaTime
+        this.y += this.sny * this.speed * 60 * this.game.deltaTime
         // this.x = 0
         // this.y = 0
     }
     drawLineFrom(start, end, dirNx, dirNy) {
         const game = this.game
         const ctx = game.ctx
-        console.log(start, end, dirNx, dirNy)
-        ctx.beginPath();
-        ctx.fillStyle = 'red';
-        ctx.moveTo((this.x - game.camera.x) + (start * convertAngle(dirNx, "deg")), (this.y - game.camera.y) + (start * convertAngle(dirNy, "deg")))
-        ctx.lineTo((this.x - game.camera.x) + (end * convertAngle(dirNx, "deg")), (this.y - game.camera.y) + (end * convertAngle(dirNy, "deg")))
-        ctx.stroke()
+        // console.log(start, end, dirNx, dirNy)
+
     }
 
     render(ctx, camera) {
@@ -148,18 +174,31 @@ export default class Enemy {
             ctx.fillRect(this.x - camera.x, (this.y + this.z) - camera.y, this.width, this.height);
 
         }
+        const game = this.game
+        // this.directions.forEach((dir) => {
+        //     ctx.beginPath();
+        //     ctx.strokeStyle = this.strokestyle;
+        //     ctx.moveTo((this.x + this.width / 2 - game.camera.x) + (30 * dir.dirNx), (this.y + this.height / 2 - game.camera.y) + (30 * dir.dirNy))
+        //     ctx.lineTo((this.x + this.width / 2 - game.camera.x) + (dir.length * dir.dirNx), (this.y + this.height / 2 - game.camera.y) + (dir.length * dir.dirNy))
+
+        //     ctx.stroke()
+        // })
+        this.directions = []
         ctx.restore();
     }
     hit() {
         this.brightness = 900;
-        this.game.camera.screenShake(2);
+        // this.game.camera.screenShake(2);
         this.health -= 20
         if (this.game.player.sword.attackDir) {
             this.sx = 10 * Math.sin(this.game.player.sword.attackDir - Math.PI / 2)
             this.sy = -10 * Math.cos(this.game.player.sword.attackDir - Math.PI / 2)
         }
         if (this.health <= 0) {
-            this.timeleft = 100
+            if (this.timeleft < 0) {
+                this.timeleft = 50
+
+            }
             this.brightness = 0
         }
     }

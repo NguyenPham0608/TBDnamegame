@@ -24,10 +24,10 @@ export default class Player {
         if (input.keys.ArrowDown || input.keys.KeyS) this.sy += 1;
         if (input.keys.ArrowLeft || input.keys.KeyA) this.sx -= 1;
         if (input.keys.ArrowRight || input.keys.KeyD) this.sx += 1;
-        this.sx *= 0.9;
-        this.sy *= 0.9;
-        this.x += this.sx * this.speed;
-        this.y += this.sy * this.speed;
+        this.sx *= 0.95;
+        this.sy *= 0.95;
+        this.x += this.sx * this.speed * 30 * this.game.deltaTime;
+        this.y += this.sy * this.speed * 30 * this.game.deltaTime;
         this.brightness += 0.2 * (100 - this.brightness)
         // Update sword
         this.sword.update(input);

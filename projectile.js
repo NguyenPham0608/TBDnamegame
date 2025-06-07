@@ -12,15 +12,15 @@ export default class Projectile {
     }
     update() {
         this.rotate += 10
-        this.x += Math.sin(this.direction) * this.speed;
-        this.y += Math.cos(this.direction) * this.speed;
+        this.x += Math.cos(this.direction) * this.speed;
+        this.y += Math.sin(this.direction) * this.speed;
         if (this.x - this.camera.x < 0 || this.x - this.camera.x > this.game.canvas.width || this.y - this.game.camera.y < 0 || this.y - this.game.camera.y > this.game.canvas.height) {
             this.delete()
         }
         const dx = this.game.player.x - this.x
         const dy = this.game.player.y - this.y
         this.distance = Math.hypot(dx, dy)
-        if (this.distance < 60) {
+        if (this.distance < 50) {
             this.game.player.hit()
             this.delete()
         }
