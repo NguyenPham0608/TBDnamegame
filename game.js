@@ -116,6 +116,8 @@ export default class Game {
 
     render() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.fillStyle = '#a2ec5f';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
         const tileSize = this.tileSize;
         const startX = Math.floor(this.camera.x / tileSize) * tileSize;
@@ -288,8 +290,8 @@ export default class Game {
                 const tileGridY = Math.floor(worldY / this.tileSize);
                 if (tileGridX >= 0 && tileGridX < this.tileData[0].length && tileGridY >= 0 && tileGridY < this.tileData.length) {
                     if (this.placeEnemyMode) {
-                        const enemyX = tileGridX * this.tileSize + this.tileSize / 2;
-                        const enemyY = tileGridY * this.tileSize + this.tileSize / 2;
+                        const enemyX = -(35 / 2) + tileGridX * this.tileSize + this.tileSize / 2;
+                        const enemyY = -(25) + tileGridY * this.tileSize + this.tileSize / 2;
                         this.enemies.push(new Enemy(enemyX, enemyY, 32, 32, 1, '#ff0000', this));
                     } else {
                         if (this.selectedTileIndex === 2) {
