@@ -60,7 +60,6 @@ export default class Sword {
         this.swingDir += this.swingSpeed * 30 * this.deltaTime;
         this.swingSpeed += (this.targetDir - this.swingDir) / 10;
         this.swingSpeed *= (1 / (60 * this.deltaTime)) * 0.75;
-        console.log((1 / (60 * this.deltaTime)) * 0.65);
     }
 
     beginSwing(dx) {

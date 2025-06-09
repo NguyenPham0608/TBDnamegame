@@ -19,19 +19,27 @@ export default class Game {
 
         this.tileSize = 32;
         this.tileImages = [];
-        for (let i = 0; i < 9; i++) {
+        for (let i = 0; i < 11; i++) {
             let img = new Image();
-            img.src = `img/tile${i}.png`;
+            img.src = `img/groundTiles/tile${i}.png`;
             this.tileImages.push(img);
         }
-        this.grassImages = []; // Fixed typo: grassImagess -> grassImages
-        for (let i = 0; i < 5; i++) {
-            let img = new Image();
-            img.src = `img/grass/tile${i + 1}.png`;
-            this.grassImages.push(img);
-        }
 
-        this.tileData = new Array(64).fill().map(() => new Array(64).fill(0));
+        this.tileData = new Array(64).fill().map(() => new Array(64).fill(10));
+        console.log(this.tileData)
+        this.tileRecipes = [
+            ['0110', "0100"],
+            ["0011", "0011", "0001"],
+            ["1100"],
+            ["1001"],
+            ["1110"],
+            ["1101", "1000"],
+            ["0111", "0101", "0000", "0010"],
+            ["1011"],
+            ["1111", "1010"],
+            [""],
+            [""]
+        ]
         this.enemies = [];
         this.projectiles = [];
         this.particles = [];
@@ -60,7 +68,8 @@ export default class Game {
 
         const defaultLevelCode = JSON.stringify({ tiles: this.tileData, enemies: [] });
         this.load(defaultLevelCode);
-
+        this.auto = false
+        this.recipe = null
         window.game = this;
     }
 
@@ -87,7 +96,7 @@ export default class Game {
                 parsedData.tiles.length === 64 &&
                 parsedData.tiles.every(row => Array.isArray(row) &&
                     row.length === 64 &&
-                    row.every(cell => Number.isInteger(cell) && cell >= 0 && cell < 9 ||
+                    row.every(cell => Number.isInteger(cell) && cell >= 0 && cell < 11 ||
                         (Math.floor(cell) === 2 && cell >= 2.1 && cell <= 2.5 && Number(cell.toFixed(1)) === cell)))) {
                 this.tileData = parsedData.tiles.map(row => row.slice());
             } else {
@@ -131,22 +140,7 @@ export default class Game {
                 const tileGridY = Math.floor(y / tileSize);
                 if (tileGridX >= 0 && tileGridX < this.tileData[0].length && tileGridY >= 0 && tileGridY < this.tileData.length) {
                     const tileIndex = this.tileData[tileGridY][tileGridX];
-                    if (tileIndex >= 2.1 && tileIndex <= 2.5) {
-                        // Render grass variant
-                        const grassIndex = Math.floor((tileIndex - 2) * 10) - 1; // Convert 2.1 -> 0, 2.2 -> 1, etc.
-                        if (this.grassImages[grassIndex]) {
-                            this.ctx.drawImage(
-                                this.grassImages[grassIndex],
-                                x - this.camera.x,
-                                y - this.camera.y,
-                                tileSize,
-                                tileSize
-                            );
-                        } else {
-                            this.ctx.fillStyle = '#000000';
-                            this.ctx.fillRect(x - this.camera.x, y - this.camera.y, tileSize, tileSize);
-                        }
-                    } else if (this.tileImages[tileIndex]) {
+                    if (this.tileImages[tileIndex]) {
                         // Render regular tile
                         this.ctx.drawImage(
                             this.tileImages[tileIndex],
@@ -197,13 +191,8 @@ export default class Game {
                     this.ctx.restore();
                 } else {
                     let selectedTileImg;
-                    if (this.selectedTileIndex === 2) {
-                        // Show random grass image for silhouette
-                        const randomGrassIndex = Math.floor(Math.random() * this.grassImages.length);
-                        selectedTileImg = this.grassImages[randomGrassIndex];
-                    } else {
-                        selectedTileImg = this.tileImages[this.selectedTileIndex];
-                    }
+                    selectedTileImg = this.tileImages[this.selectedTileIndex];
+
                     if (selectedTileImg) {
                         this.ctx.save();
                         this.ctx.globalAlpha = 0.5;
@@ -218,12 +207,8 @@ export default class Game {
 
             if (!this.placeEnemyMode) {
                 let previewTileImg;
-                if (this.selectedTileIndex === 2) {
-                    const randomGrassIndex = Math.floor(Math.random() * this.grassImages.length);
-                    previewTileImg = this.grassImages[randomGrassIndex];
-                } else {
-                    previewTileImg = this.tileImages[this.selectedTileIndex];
-                }
+                previewTileImg = this.tileImages[this.selectedTileIndex];
+
                 if (previewTileImg) {
                     this.ctx.drawImage(previewTileImg, 10, 10, 16, 16);
                     this.ctx.strokeStyle = 'white';
@@ -245,8 +230,74 @@ export default class Game {
             document.getElementById('log').innerText = 'Editor Mode: OFF';
         }
     }
+    paintTile(tileGridX, tileGridY) {
+        if (tileGridX >= 0 && tileGridX < this.tileData[0].length && tileGridY >= 0 && tileGridY < this.tileData.length) {
+            if (this.placeEnemyMode) {
+                const enemyX = -(35 / 2) + tileGridX * this.tileSize + this.tileSize / 2;
+                const enemyY = -(25) + tileGridY * this.tileSize + this.tileSize / 2;
+                this.enemies.push(new Enemy(enemyX, enemyY, 32, 32, 1, '#ff0000', this));
+            } else {
+                this.tileData[tileGridY][tileGridX] = this.selectedTileIndex;
+            }
+            if (this.auto) {
+                if (!this.placeEnemyMode) {
+                    this.fixTile(tileGridX, tileGridY);
+                    this.fixTile(tileGridX, tileGridY - 1);
+                    this.fixTile(tileGridX + 1, tileGridY);
+                    this.fixTile(tileGridX, tileGridY + 1);
+                    this.fixTile(tileGridX - 1, tileGridY);
+                }
+            }
+        }
+    }
+    fixTile(tileGridX, tileGridY) {
+        this.recipe = ""
+        this.buildRecipe(tileGridX, tileGridY - 1)
+        this.buildRecipe(tileGridX + 1, tileGridY)
+        this.buildRecipe(tileGridX, tileGridY + 1)
+        this.buildRecipe(tileGridX - 1, tileGridY)
+        let tile = this.tileData[tileGridY][tileGridX]
+        for (let i = 0; i < 10; i++) {
+            if (tile !== 10) {
+                console.log(this.recipe, this.tileRecipes[i])
+                if (containsAnyPattern(this.recipe, this.tileRecipes[i])) {
+                    this.tileData[tileGridY][tileGridX] = i
+                    return
+                }
+            }
+        }
+    }
+    buildRecipe(tileGridX, tileGridY) {
+        console.log(tileGridX, tileGridY)
+        const edgeTile = this.tileData[tileGridY][tileGridX];
+        if (edgeTile == 10) {
+            this.recipe = "" + this.recipe + 0
+        } else {
+            this.recipe = "" + this.recipe + 1
+        }
+
+    }
 
     update() {
+        let worldX = this.input.mouseX + this.camera.x;
+        let worldY = this.input.mouseY + this.camera.y;
+        let tileGridX = Math.floor(worldX / this.tileSize);
+        let tileGridY = Math.floor(worldY / this.tileSize);
+        if (tileGridX < 0) {
+            tileGridX = 0;
+        }
+        if (tileGridY < 0) {
+            tileGridY = 0;
+        }
+        if (tileGridX > 63) {
+            tileGridX = 63;
+        }
+        if (tileGridY > 63) {
+            tileGridY = 63;
+        }
+        const tile = this.tileData[tileGridY][tileGridX];
+
+        console.log(tile, tileGridX, tileGridY)
         if (this.input.keys.KeyE && !this.prevKeyE) {
             this.editorMode = !this.editorMode;
         }
@@ -256,6 +307,11 @@ export default class Game {
             if (this.input.keys.KeyP && !this.prevKeyP) {
                 this.placeEnemyMode = !this.placeEnemyMode;
             }
+            if (this.input.keys.Space && !this.prevKeySpace) {
+                this.auto = !this.auto;
+            }
+            this.prevKeySpace = this.input.keys.Space;
+
             this.prevKeyP = this.input.keys.KeyP;
 
             for (let i = 1; i <= 9; i++) {
@@ -284,25 +340,8 @@ export default class Game {
             this.prevKeyL = this.input.keys.KeyL;
 
             if (this.input.mouseDown && !this.prevMouseDown) {
-                const worldX = this.input.mouseX + this.camera.x;
-                const worldY = this.input.mouseY + this.camera.y;
-                const tileGridX = Math.floor(worldX / this.tileSize);
-                const tileGridY = Math.floor(worldY / this.tileSize);
-                if (tileGridX >= 0 && tileGridX < this.tileData[0].length && tileGridY >= 0 && tileGridY < this.tileData.length) {
-                    if (this.placeEnemyMode) {
-                        const enemyX = -(35 / 2) + tileGridX * this.tileSize + this.tileSize / 2;
-                        const enemyY = -(25) + tileGridY * this.tileSize + this.tileSize / 2;
-                        this.enemies.push(new Enemy(enemyX, enemyY, 32, 32, 1, '#ff0000', this));
-                    } else {
-                        if (this.selectedTileIndex === 2) {
-                            // Place random grass tile
-                            const randomGrassIndex = Math.floor(Math.random() * this.grassImages.length) + 1;
-                            this.tileData[tileGridY][tileGridX] = 2 + (randomGrassIndex / 10); // e.g., 2.1, 2.2, etc.
-                        } else {
-                            this.tileData[tileGridY][tileGridX] = this.selectedTileIndex;
-                        }
-                    }
-                }
+
+                this.paintTile(tileGridX, tileGridY);
             }
             this.prevMouseDown = this.input.mouseDown;
 
@@ -332,7 +371,7 @@ export default class Game {
 
     start() {
         let imagesLoaded = 0;
-        const totalImages = this.tileImages.length + this.grassImages.length;
+        const totalImages = this.tileImages.length;
         const checkAllLoaded = () => {
             imagesLoaded++;
             if (imagesLoaded === totalImages) {
@@ -345,12 +384,7 @@ export default class Game {
                 console.error(`Failed to load image: ${img.src}`);
             };
         });
-        this.grassImages.forEach((img) => {
-            img.onload = checkAllLoaded;
-            img.onerror = () => {
-                console.error(`Failed to load image: ${img.src}`);
-            };
-        });
+
     }
 
     canvasFullScreen(canvas, ctx) {

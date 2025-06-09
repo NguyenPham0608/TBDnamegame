@@ -11,3 +11,9 @@ function convertAngle(value, to) {
         throw new Error("Invalid target unit. Use 'deg' or 'rad'.");
     }
 }
+
+
+
+function containsAnyPattern(str, patterns) {
+    return patterns.some(pattern => str.includes(pattern));
+}
