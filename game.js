@@ -21,13 +21,15 @@ export default class Game {
         this.tileImages = [];
         for (let i = 0; i < 11; i++) {
             let img = new Image();
-            img.src = `img/groundTiles/tile${i}.png`;
+            img.src = `img/tiles/groundTiles/tile${i}.png`;
             this.tileImages.push(img);
         }
 
-        this.tileData = new Array(64).fill().map(() => new Array(64).fill(10));
+
+        this.tileData = new Array(64).fill().map(() => new Array(64).fill(0));
         console.log(this.tileData)
         this.tileRecipes = [
+            [],
             ['0110', "0100"],
             ["0011", "0011", "0001"],
             ["1100"],
@@ -37,8 +39,8 @@ export default class Game {
             ["0111", "0101", "0000", "0010"],
             ["1011"],
             ["1111", "1010"],
-            [""],
-            [""]
+            [],
+            []
         ]
         this.enemies = [];
         this.projectiles = [];
@@ -72,6 +74,7 @@ export default class Game {
         this.recipe = null
         this.time = 0
         window.game = this;
+        this.nextTile = 0
 
     }
 
@@ -259,31 +262,36 @@ export default class Game {
         this.buildRecipe(tileGridX + 1, tileGridY)
         this.buildRecipe(tileGridX, tileGridY + 1)
         this.buildRecipe(tileGridX - 1, tileGridY)
+        console.log(this.recipe)
         let tile = this.tileData[tileGridY][tileGridX]
-        for (let i = 0; i < 10; i++) {
-            if (tile !== 10) {
-                console.log(this.recipe, this.tileRecipes[i])
-                if (containsAnyPattern(this.recipe, this.tileRecipes[i])) {
-                    this.tileData[tileGridY][tileGridX] = i
-                    return
+        for (let i = 0; i < 12; i++) {
+            console.log(this.tileRecipes[i].length !== 0)
+            if (this.tileRecipes[i].length !== 0) {
+                if (tile !== 0) {
+                    for (let j = 0; j < this.tileRecipes[i].length; j++) {
+                        if (this.tileRecipes[i][j].includes(this.recipe)) {
+                            this.tileData[tileGridY][tileGridX] = i
+                            return
+                        }
+                    }
                 }
             }
         }
     }
     buildRecipe(tileGridX, tileGridY) {
-        console.log(tileGridX, tileGridY)
         const edgeTile = this.tileData[tileGridY][tileGridX];
-        if (edgeTile == 10) {
+        if (this.tileRecipes[edgeTile].length == 0) {
             this.recipe = "" + this.recipe + 0
+
         } else {
             this.recipe = "" + this.recipe + 1
         }
+
 
     }
 
     update() {
         this.time++
-        console.log(this.time)
         let worldX = this.input.mouseX + this.camera.x;
         let worldY = this.input.mouseY + this.camera.y;
         let tileGridX = Math.floor(worldX / this.tileSize);
@@ -302,7 +310,6 @@ export default class Game {
         }
         const tile = this.tileData[tileGridY][tileGridX];
 
-        console.log(tile, tileGridX, tileGridY)
         if (this.input.keys.KeyE && !this.prevKeyE) {
             this.editorMode = !this.editorMode;
         }
@@ -320,12 +327,14 @@ export default class Game {
             this.prevKeyP = this.input.keys.KeyP;
 
             if (this.input.keys["Digit1"]) {
-                if (this.time % 10 == 0) {
+                if (this.nextTile <= 0) {
                     this.selectedTileIndex += 1;
-                    this.selectedTileIndex = this.selectedTileIndex % 10;
+                    this.selectedTileIndex = this.selectedTileIndex % 12;
+                    this.nextTile = 10
                 }
 
             }
+            this.nextTile--
 
             if (this.input.keys.KeyS && !this.prevKeyS) {
                 const levelCode = this.save();

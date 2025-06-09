@@ -165,17 +165,16 @@ export default class Enemy {
         ctx.save();
         this.brightness += 0.1 * (100 - this.brightness)
 
-        ctx.filter = `brightness(${this.brightness}%)`;
+        // ctx.filter = `brightness(${this.brightness}%)`;
 
         if (this.img) {
-            ctx.drawImage(this.img, this.x - camera.x, this.y + this.z - camera.y, this.width, this.height);
+            ctx.drawImage(this.img, this.x - camera.x, this.y + this.z - camera.y, 70 / 2, 100 / 2);
         } else {
             ctx.fillRect(this.x - camera.x, (this.y + this.z) - camera.y, this.width, this.height);
 
         }
         ctx.fillStyle = "red"
-        ctx.fillRect(this.x - camera.x, (this.y + this.z) - camera.y, this.width, this.height);
-        console.log(this.img)
+        // ctx.fillRect(this.x - camera.x, (this.y + this.z) - camera.y, this.width, this.height);
 
         const game = this.game
         // this.directions.forEach((dir) => {
