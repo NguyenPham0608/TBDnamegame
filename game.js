@@ -70,7 +70,9 @@ export default class Game {
         this.load(defaultLevelCode);
         this.auto = false
         this.recipe = null
+        this.time = 0
         window.game = this;
+
     }
 
     save() {
@@ -125,7 +127,7 @@ export default class Game {
 
     render() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.ctx.fillStyle = '#a2ec5f';
+        this.ctx.fillStyle = '#52ad34';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
         const tileSize = this.tileSize;
@@ -160,10 +162,7 @@ export default class Game {
             }
         }
 
-        this.enemies.forEach((enemy) => enemy.render(this.ctx, this.camera));
-        this.player.render(this.ctx, this.camera, this.input);
-        this.projectiles.forEach((projectile) => projectile.render(this.ctx, this.camera));
-        this.particles.forEach((particle) => particle.render(this.ctx, this.camera));
+
 
         if (this.editorMode) {
             document.getElementById('log').innerText = `Editor Mode: ON, ${this.placeEnemyMode ? 'Enemy Placement' : 'Tile Placement: ' + this.selectedTileIndex} (P: Toggle Mode, S: Save, L: Load)`;
@@ -195,7 +194,7 @@ export default class Game {
 
                     if (selectedTileImg) {
                         this.ctx.save();
-                        this.ctx.globalAlpha = 0.5;
+                        this.ctx.globalAlpha = 0.8;
                         this.ctx.drawImage(selectedTileImg, drawX, drawY, this.tileSize, this.tileSize);
                         this.ctx.strokeStyle = 'white';
                         this.ctx.lineWidth = 2;
@@ -229,6 +228,10 @@ export default class Game {
         } else {
             document.getElementById('log').innerText = 'Editor Mode: OFF';
         }
+        this.enemies.forEach((enemy) => enemy.render(this.ctx, this.camera));
+        this.player.render(this.ctx, this.camera, this.input);
+        this.projectiles.forEach((projectile) => projectile.render(this.ctx, this.camera));
+        this.particles.forEach((particle) => particle.render(this.ctx, this.camera));
     }
     paintTile(tileGridX, tileGridY) {
         if (tileGridX >= 0 && tileGridX < this.tileData[0].length && tileGridY >= 0 && tileGridY < this.tileData.length) {
@@ -279,6 +282,8 @@ export default class Game {
     }
 
     update() {
+        this.time++
+        console.log(this.time)
         let worldX = this.input.mouseX + this.camera.x;
         let worldY = this.input.mouseY + this.camera.y;
         let tileGridX = Math.floor(worldX / this.tileSize);
@@ -314,12 +319,12 @@ export default class Game {
 
             this.prevKeyP = this.input.keys.KeyP;
 
-            for (let i = 1; i <= 9; i++) {
-                const key = `Digit${i}`;
-                if (this.input.keys[key] && !this.prevDigitKeys[key]) {
-                    this.selectedTileIndex = i - 1;
+            if (this.input.keys["Digit1"]) {
+                if (this.time % 10 == 0) {
+                    this.selectedTileIndex += 1;
+                    this.selectedTileIndex = this.selectedTileIndex % 10;
                 }
-                this.prevDigitKeys[key] = this.input.keys[key];
+
             }
 
             if (this.input.keys.KeyS && !this.prevKeyS) {
@@ -339,11 +344,10 @@ export default class Game {
             }
             this.prevKeyL = this.input.keys.KeyL;
 
-            if (this.input.mouseDown && !this.prevMouseDown) {
+            if (this.input.mouseDown) {
 
                 this.paintTile(tileGridX, tileGridY);
             }
-            this.prevMouseDown = this.input.mouseDown;
 
             if (this.input.keys.KeyW) this.camera.realY -= 5;
             if (this.input.keys.KeyS) this.camera.realY += 5;

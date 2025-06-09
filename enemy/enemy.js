@@ -173,6 +173,10 @@ export default class Enemy {
             ctx.fillRect(this.x - camera.x, (this.y + this.z) - camera.y, this.width, this.height);
 
         }
+        ctx.fillStyle = "red"
+        ctx.fillRect(this.x - camera.x, (this.y + this.z) - camera.y, this.width, this.height);
+        console.log(this.img)
+
         const game = this.game
         // this.directions.forEach((dir) => {
         //     ctx.beginPath();
