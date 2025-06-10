@@ -13,10 +13,10 @@
     <canvas id="gameCanvas"></canvas>
     <span id="log">nothing yet</span>
     <script src="utils.js"></script>
-    <div id="layerSliderContainer">
-        <label for="layerSlider">Layer:</label>
-        <input type="range" id="layerSlider" min="0" max="2" value="0" step="1">
-        <span id="layerLabel">0</span>
+    <div id="layerSlider">
+        <label for="layer">Layer: </label>
+        <input type="range" id="layer" name="layer" min="0" max="2" step="1" value="0">
+        <span id="layerValue">0</span>
     </div>
     <script type="module" src="game.js"></script>
     <script>

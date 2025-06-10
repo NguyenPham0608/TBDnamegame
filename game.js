@@ -83,6 +83,21 @@ export default class Game {
         this.time = 0;
         window.game = this;
         this.nextTile = 0;
+
+        // Layer slider setup
+        this.currentLayer = 0;
+        this.layerSlider = document.getElementById('layer');
+        if (this.layerSlider) {
+            this.layerSlider.addEventListener('input', () => {
+                this.currentLayer = parseInt(this.layerSlider.value);
+                document.getElementById('layerValue').innerText = this.currentLayer;
+            });
+            // Set initial value
+            this.currentLayer = parseInt(this.layerSlider.value);
+            document.getElementById('layerValue').innerText = this.currentLayer;
+        } else {
+            console.error("Layer slider not found");
+        }
     }
 
     save() {
@@ -186,7 +201,7 @@ export default class Game {
         }
 
         if (this.editorMode) {
-            document.getElementById('log').innerText = `Editor Mode: ON, ${this.placeEnemyMode ? 'Enemy Placement' : 'Tile Placement: ' + this.selectedTileIndex} (P: Toggle Mode, S: Save, L: Load)`;
+            document.getElementById('log').innerText = `Editor Mode: ON, Layer: ${this.currentLayer}, ${this.placeEnemyMode ? 'Enemy Placement' : 'Tile Placement: ' + this.selectedTileIndex} (P: Toggle Mode, S: Save, L: Load)`;
 
             const worldMouseX = this.input.mouseX + this.camera.x;
             const worldMouseY = this.input.mouseY + this.camera.y;
@@ -258,7 +273,7 @@ export default class Game {
                 const enemyY = -(25) + tileGridY * this.tileSize + this.tileSize / 2;
                 this.enemies.push(new Enemy(enemyX, enemyY, 32, 32, 1, '#ff0000', this));
             } else {
-                const layer = this.tileType[this.selectedTileIndex];
+                const layer = this.currentLayer;
                 this.tileData[layer][tileGridY][tileGridX] = this.selectedTileIndex;
                 if (this.auto && layer === 0) {
                     this.fixTile(tileGridX, tileGridY);
