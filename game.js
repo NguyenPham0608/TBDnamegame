@@ -19,15 +19,19 @@ export default class Game {
 
         this.tileSize = 32;
         this.tileImages = [];
-        for (let i = 0; i < 12; i++) {
+        for (let i = 0; i < 13; i++) {
             let img = new Image();
             img.src = `img/tiles/groundTiles/tile${i}.png`;
             this.tileImages.push(img);
         }
 
+        // Initialize tileData as a 3D array: 3 layers, each 64x64
+        this.tileData = [
+            new Array(64).fill().map(() => new Array(64).fill(0)), // Layer 0: default tiles
+            new Array(64).fill().map(() => new Array(64).fill(0)), // Layer 1: empty
+            new Array(64).fill().map(() => new Array(64).fill(0))  // Layer 2: empty
+        ];
 
-        this.tileData = new Array(64).fill().map(() => new Array(64).fill(0));
-        console.log(this.tileData)
         this.tileRecipes = [
             [],
             ['0110', "0100"],
@@ -40,22 +44,12 @@ export default class Game {
             ["1011"],
             ["1111", "1010"],
             [],
-            []
-        ]
+            [],
+            [],
+        ];
         this.tileType = [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            1,
-            1,
-        ]
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1
+        ];
         this.enemies = [];
         this.projectiles = [];
         this.particles = [];
@@ -84,12 +78,11 @@ export default class Game {
 
         const defaultLevelCode = JSON.stringify({ tiles: this.tileData, enemies: [] });
         this.load(defaultLevelCode);
-        this.auto = false
-        this.recipe = null
-        this.time = 0
+        this.auto = false;
+        this.recipe = null;
+        this.time = 0;
         window.game = this;
-        this.nextTile = 0
-
+        this.nextTile = 0;
     }
 
     save() {
@@ -110,26 +103,40 @@ export default class Game {
     load(levelString) {
         try {
             const parsedData = JSON.parse(levelString);
-            // Validate tiles
-            if (Array.isArray(parsedData.tiles) &&
-                parsedData.tiles.length === 64 &&
-                parsedData.tiles.every(row => Array.isArray(row) &&
-                    row.length === 64 &&
-                    row.every(cell => Number.isInteger(cell) && cell >= 0 && cell < 11 ||
-                        (Math.floor(cell) === 2 && cell >= 2.1 && cell <= 2.5 && Number(cell.toFixed(1)) === cell)))) {
-                this.tileData = parsedData.tiles.map(row => row.slice());
+            if (Array.isArray(parsedData.tiles)) {
+                if (parsedData.tiles.length === 3 &&
+                    parsedData.tiles.every(layer => Array.isArray(layer) &&
+                        layer.length === 64 &&
+                        layer.every(row => Array.isArray(row) &&
+                            row.length === 64 &&
+                            row.every(cell => Number.isInteger(cell) && cell >= -1 && cell < 12)))) {
+                    this.tileData = parsedData.tiles.map(layer => layer.map(row => row.slice()));
+                } else if (parsedData.tiles.length === 64 &&
+                    parsedData.tiles.every(row => Array.isArray(row) &&
+                        row.length === 64 &&
+                        row.every(cell => Number.isInteger(cell) && cell >= 0 && cell < 12))) {
+                    // Legacy 2D format: assign to layer 0, others empty
+                    this.tileData = [
+                        parsedData.tiles.map(row => row.slice()),
+                        new Array(64).fill().map(() => new Array(64).fill(-1)),
+                        new Array(64).fill().map(() => new Array(64).fill(-1))
+                    ];
+                } else {
+                    console.error("Invalid tile data: must be a 64x64 array or 3 layers of 64x64 arrays with integers -1 to 11");
+                    return;
+                }
+                // Load enemies
+                if (Array.isArray(parsedData.enemies)) {
+                    this.enemies = parsedData.enemies.map(data =>
+                        new Enemy(data.x, data.y, data.width || 32, data.height || 32, data.speed || 1, data.color || '#ff0000', this)
+                    );
+                } else {
+                    console.error("Invalid enemy data: must be an array");
+                    this.enemies = [];
+                }
             } else {
-                console.error("Invalid tile data: must be a 64x64 array of integers 0-8 or decimals 2.1-2.5");
+                console.error("Invalid tile data");
                 return;
-            }
-            // Validate and load enemies
-            if (Array.isArray(parsedData.enemies)) {
-                this.enemies = parsedData.enemies.map(data =>
-                    new Enemy(data.x, data.y, data.width || 32, data.height || 32, data.speed || 1, data.color || '#ff0000', this)
-                );
-            } else {
-                console.error("Invalid enemy data: must be an array");
-                this.enemies = [];
             }
         } catch (e) {
             console.error("Error parsing level data", e);
@@ -157,20 +164,19 @@ export default class Game {
             for (let y = startY; y < endY; y += tileSize) {
                 const tileGridX = Math.floor(x / tileSize);
                 const tileGridY = Math.floor(y / tileSize);
-                if (tileGridX >= 0 && tileGridX < this.tileData[0].length && tileGridY >= 0 && tileGridY < this.tileData.length) {
-                    const tileIndex = this.tileData[tileGridY][tileGridX];
-                    if (this.tileImages[tileIndex]) {
-                        // Render regular tile
-                        this.ctx.drawImage(
-                            this.tileImages[tileIndex],
-                            x - this.camera.x,
-                            y - this.camera.y,
-                            tileSize,
-                            tileSize
-                        );
-                    } else {
-                        this.ctx.fillStyle = '#000000';
-                        this.ctx.fillRect(x - this.camera.x, y - this.camera.y, tileSize, tileSize);
+                if (tileGridX >= 0 && tileGridX < 64 && tileGridY >= 0 && tileGridY < 64) {
+                    // Draw all layers
+                    for (let layer = 0; layer < 3; layer++) {
+                        const tileIndex = this.tileData[layer][tileGridY][tileGridX];
+                        if (tileIndex >= 0 && this.tileImages[tileIndex]) {
+                            this.ctx.drawImage(
+                                this.tileImages[tileIndex],
+                                x - this.camera.x,
+                                y - this.camera.y,
+                                tileSize,
+                                tileSize
+                            );
+                        }
                     }
                 } else {
                     this.ctx.fillStyle = '#000000';
@@ -179,8 +185,6 @@ export default class Game {
             }
         }
 
-
-
         if (this.editorMode) {
             document.getElementById('log').innerText = `Editor Mode: ON, ${this.placeEnemyMode ? 'Enemy Placement' : 'Tile Placement: ' + this.selectedTileIndex} (P: Toggle Mode, S: Save, L: Load)`;
 
@@ -188,7 +192,7 @@ export default class Game {
             const worldMouseY = this.input.mouseY + this.camera.y;
             const tileGridX = Math.floor(worldMouseX / this.tileSize);
             const tileGridY = Math.floor(worldMouseY / this.tileSize);
-            if (tileGridX >= 0 && tileGridX < this.tileData[0].length && tileGridY >= 0 && tileGridY < this.tileData.length) {
+            if (tileGridX >= 0 && tileGridX < this.tileData[0].length && tileGridY >= 0 && tileGridY < this.tileData[0].length) {
                 const drawX = tileGridX * this.tileSize - this.camera.x;
                 const drawY = tileGridY * this.tileSize - this.camera.y;
                 if (this.placeEnemyMode) {
@@ -206,9 +210,7 @@ export default class Game {
                     this.ctx.strokeRect(drawX, drawY, 35, 50);
                     this.ctx.restore();
                 } else {
-                    let selectedTileImg;
-                    selectedTileImg = this.tileImages[this.selectedTileIndex];
-
+                    let selectedTileImg = this.tileImages[this.selectedTileIndex];
                     if (selectedTileImg) {
                         this.ctx.save();
                         this.ctx.globalAlpha = 0.8;
@@ -222,9 +224,7 @@ export default class Game {
             }
 
             if (!this.placeEnemyMode) {
-                let previewTileImg;
-                previewTileImg = this.tileImages[this.selectedTileIndex];
-
+                let previewTileImg = this.tileImages[this.selectedTileIndex];
                 if (previewTileImg) {
                     this.ctx.drawImage(previewTileImg, 10, 10, 16, 16);
                     this.ctx.strokeStyle = 'white';
@@ -250,17 +250,17 @@ export default class Game {
         this.projectiles.forEach((projectile) => projectile.render(this.ctx, this.camera));
         this.particles.forEach((particle) => particle.render(this.ctx, this.camera));
     }
+
     paintTile(tileGridX, tileGridY) {
-        if (tileGridX >= 0 && tileGridX < this.tileData[0].length && tileGridY >= 0 && tileGridY < this.tileData.length) {
+        if (tileGridX >= 0 && tileGridX < this.tileData[0][0].length && tileGridY >= 0 && tileGridY < this.tileData[0].length) {
             if (this.placeEnemyMode) {
                 const enemyX = -(35 / 2) + tileGridX * this.tileSize + this.tileSize / 2;
                 const enemyY = -(25) + tileGridY * this.tileSize + this.tileSize / 2;
                 this.enemies.push(new Enemy(enemyX, enemyY, 32, 32, 1, '#ff0000', this));
             } else {
-                this.tileData[tileGridY][tileGridX] = this.selectedTileIndex;
-            }
-            if (this.auto) {
-                if (!this.placeEnemyMode) {
+                const layer = this.tileType[this.selectedTileIndex];
+                this.tileData[layer][tileGridY][tileGridX] = this.selectedTileIndex;
+                if (this.auto && layer === 0) {
                     this.fixTile(tileGridX, tileGridY);
                     this.fixTile(tileGridX, tileGridY - 1);
                     this.fixTile(tileGridX + 1, tileGridY);
@@ -270,59 +270,52 @@ export default class Game {
             }
         }
     }
+
     fixTile(tileGridX, tileGridY) {
-        this.recipe = ""
-        this.buildRecipe(tileGridX, tileGridY - 1)
-        this.buildRecipe(tileGridX + 1, tileGridY)
-        this.buildRecipe(tileGridX, tileGridY + 1)
-        this.buildRecipe(tileGridX - 1, tileGridY)
-        console.log(this.recipe)
-        let tile = this.tileData[tileGridY][tileGridX]
+        if (tileGridX < 0 || tileGridX >= 64 || tileGridY < 0 || tileGridY >= 64) return;
+        this.recipe = "";
+        this.buildRecipe(tileGridX, tileGridY - 1);
+        this.buildRecipe(tileGridX + 1, tileGridY);
+        this.buildRecipe(tileGridX, tileGridY + 1);
+        this.buildRecipe(tileGridX - 1, tileGridY);
+        let tile = this.tileData[0][tileGridY][tileGridX];
         for (let i = 0; i < 12; i++) {
-            console.log(this.tileRecipes[i].length !== 0)
             if (this.tileRecipes[i].length !== 0) {
                 if (tile !== 0) {
                     for (let j = 0; j < this.tileRecipes[i].length; j++) {
                         if (this.tileRecipes[i][j].includes(this.recipe)) {
-                            this.tileData[tileGridY][tileGridX] = i
-                            return
+                            this.tileData[0][tileGridY][tileGridX] = i;
+                            return;
                         }
                     }
                 }
             }
         }
     }
+
     buildRecipe(tileGridX, tileGridY) {
-        const edgeTile = this.tileData[tileGridY][tileGridX];
-        if (this.tileRecipes[edgeTile].length == 0) {
-            this.recipe = "" + this.recipe + 0
-
-        } else {
-            this.recipe = "" + this.recipe + 1
+        if (tileGridX < 0 || tileGridX >= 64 || tileGridY < 0 || tileGridY >= 64) {
+            this.recipe = "" + this.recipe + 0;
+            return;
         }
-
-
+        const edgeTile = this.tileData[0][tileGridY][tileGridX];
+        if (this.tileRecipes[edgeTile].length === 0) {
+            this.recipe = "" + this.recipe + 0;
+        } else {
+            this.recipe = "" + this.recipe + 1;
+        }
     }
 
     update() {
-        this.time++
+        this.time++;
         let worldX = this.input.mouseX + this.camera.x;
         let worldY = this.input.mouseY + this.camera.y;
         let tileGridX = Math.floor(worldX / this.tileSize);
         let tileGridY = Math.floor(worldY / this.tileSize);
-        if (tileGridX < 0) {
-            tileGridX = 0;
-        }
-        if (tileGridY < 0) {
-            tileGridY = 0;
-        }
-        if (tileGridX > 63) {
-            tileGridX = 63;
-        }
-        if (tileGridY > 63) {
-            tileGridY = 63;
-        }
-        const tile = this.tileData[tileGridY][tileGridX];
+        if (tileGridX < 0) tileGridX = 0;
+        if (tileGridY < 0) tileGridY = 0;
+        if (tileGridX > 63) tileGridX = 63;
+        if (tileGridY > 63) tileGridY = 63;
 
         if (this.input.keys.KeyE && !this.prevKeyE) {
             this.editorMode = !this.editorMode;
@@ -337,20 +330,18 @@ export default class Game {
                 this.auto = !this.auto;
             }
             this.prevKeySpace = this.input.keys.Space;
-
             this.prevKeyP = this.input.keys.KeyP;
 
             if (this.input.keys["Digit1"]) {
                 if (this.nextTile <= 0) {
                     this.selectedTileIndex += 1;
-                    if (this.selectedTileIndex > 11) {
-                        this.selectedTileIndex = 1
+                    if (this.selectedTileIndex > 12) {
+                        this.selectedTileIndex = 1;
                     }
-                    this.nextTile = 10 * (1 / (60 * this.deltaTime))
+                    this.nextTile = 10 * (1 / (60 * this.deltaTime));
                 }
-
             }
-            this.nextTile--
+            this.nextTile--;
 
             if (this.input.keys.KeyS && !this.prevKeyS) {
                 const levelCode = this.save();
@@ -370,7 +361,6 @@ export default class Game {
             this.prevKeyL = this.input.keys.KeyL;
 
             if (this.input.mouseDown) {
-
                 this.paintTile(tileGridX, tileGridY);
             }
 
@@ -413,7 +403,6 @@ export default class Game {
                 console.error(`Failed to load image: ${img.src}`);
             };
         });
-
     }
 
     canvasFullScreen(canvas, ctx) {

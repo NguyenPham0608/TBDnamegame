@@ -13,7 +13,21 @@
     <canvas id="gameCanvas"></canvas>
     <span id="log">nothing yet</span>
     <script src="utils.js"></script>
+    <div id="layerSliderContainer">
+        <label for="layerSlider">Layer:</label>
+        <input type="range" id="layerSlider" min="0" max="2" value="0" step="1">
+        <span id="layerLabel">0</span>
+    </div>
     <script type="module" src="game.js"></script>
+    <script>
+        const slider = document.getElementById('layerSlider');
+        const label = document.getElementById('layerLabel');
+        if (slider && label) {
+            slider.addEventListener('input', () => {
+                label.textContent = slider.value;
+            });
+        }
+    </script>
 </body>
 
 </html>
