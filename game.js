@@ -375,9 +375,17 @@ export default class Game {
             }
             this.prevKeyL = this.input.keys.KeyL;
 
-            if (this.input.mouseDown) {
-                this.paintTile(tileGridX, tileGridY);
+            if (!this.placeEnemyMode) {
+                if (this.input.mouseDown) {
+                    this.paintTile(tileGridX, tileGridY);
+                }
+            } else {
+                if (this.input.mouseDown && !this.prevMouseDown) {
+                    this.paintTile(tileGridX, tileGridY);
+                    this.prevMouseDown = this.input.mouseDown;
+                }
             }
+
 
             if (this.input.keys.KeyW) this.camera.realY -= 5;
             if (this.input.keys.KeyS) this.camera.realY += 5;
