@@ -19,7 +19,7 @@ export default class Game {
 
         this.tileSize = 32;
         this.tileImages = [];
-        for (let i = 0; i < 11; i++) {
+        for (let i = 0; i < 12; i++) {
             let img = new Image();
             img.src = `img/tiles/groundTiles/tile${i}.png`;
             this.tileImages.push(img);
@@ -42,6 +42,20 @@ export default class Game {
             [],
             []
         ]
+        this.tileType = [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+        ]
         this.enemies = [];
         this.projectiles = [];
         this.particles = [];
@@ -54,7 +68,7 @@ export default class Game {
         this.input = new InputHandler(this.canvas);
 
         this.editorMode = false;
-        this.selectedTileIndex = 0;
+        this.selectedTileIndex = 1;
         this.placeEnemyMode = false;
         this.prevKeyE = false;
         this.prevKeyP = false;
@@ -329,8 +343,10 @@ export default class Game {
             if (this.input.keys["Digit1"]) {
                 if (this.nextTile <= 0) {
                     this.selectedTileIndex += 1;
-                    this.selectedTileIndex = this.selectedTileIndex % 12;
-                    this.nextTile = 10
+                    if (this.selectedTileIndex > 11) {
+                        this.selectedTileIndex = 1
+                    }
+                    this.nextTile = 10 * (1 / (60 * this.deltaTime))
                 }
 
             }
