@@ -274,7 +274,13 @@ export default class Game {
                 this.enemies.push(new Enemy(enemyX, enemyY, 32, 32, 1, '#ff0000', this));
             } else {
                 const layer = this.currentLayer;
-                this.tileData[layer][tileGridY][tileGridX] = this.selectedTileIndex;
+                if (this.tileData[layer][tileGridY][tileGridX] !== this.selectedTileIndex) {
+                    this.tileData[layer][tileGridY][tileGridX] = this.selectedTileIndex;
+
+                } else {
+                    this.tileData[layer][tileGridY][tileGridX] = 0;
+
+                }
                 if (this.auto && layer === 0) {
                     this.fixTile(tileGridX, tileGridY);
                     this.fixTile(tileGridX, tileGridY - 1);
@@ -387,10 +393,10 @@ export default class Game {
             }
 
 
-            if (this.input.keys.KeyW) this.camera.realY -= 5;
-            if (this.input.keys.KeyS) this.camera.realY += 5;
-            if (this.input.keys.KeyA) this.camera.realX -= 5;
-            if (this.input.keys.KeyD) this.camera.realX += 5;
+            if (this.input.keys.KeyW) this.camera.realY -= 10;
+            if (this.input.keys.KeyS) this.camera.realY += 10;
+            if (this.input.keys.KeyA) this.camera.realX -= 10;
+            if (this.input.keys.KeyD) this.camera.realX += 10;
             this.camera.realX = Math.max(0, Math.min(this.camera.realX, this.world.width - this.camera.width));
             this.camera.realY = Math.max(0, Math.min(this.camera.realY, this.world.height - this.camera.height));
             this.camera.x = Math.round(this.camera.realX);

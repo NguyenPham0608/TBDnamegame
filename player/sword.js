@@ -48,18 +48,20 @@ export default class Sword {
     }
 
     processSwing(input) {
-        this.swingDelay--;
-        if (input.keys.Space || input.mouseDown) {
-            if (this.swingDelay < 1 && Math.abs(this.targetDir) === 150) {
-                this.beginSwing(this.targetDir / -150);
+        if (!this.player.game.editorMode) {
+            this.swingDelay--;
+            if (input.keys.Space || input.mouseDown) {
+                if (this.swingDelay < 1 && Math.abs(this.targetDir) === 150) {
+                    this.beginSwing(this.targetDir / -150);
+                }
+            } else {
+                this.returnSword();
             }
-        } else {
-            this.returnSword();
+            this.relaxSword();
+            this.swingDir += this.swingSpeed * 30 * this.deltaTime;
+            this.swingSpeed += (this.targetDir - this.swingDir) / 10;
+            this.swingSpeed *= (1 / (60 * this.deltaTime)) * 0.75;
         }
-        this.relaxSword();
-        this.swingDir += this.swingSpeed * 30 * this.deltaTime;
-        this.swingSpeed += (this.targetDir - this.swingDir) / 10;
-        this.swingSpeed *= (1 / (60 * this.deltaTime)) * 0.75;
     }
 
     beginSwing(dx) {
