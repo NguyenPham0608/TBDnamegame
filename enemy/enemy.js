@@ -107,9 +107,9 @@ export default class Enemy {
                 score += score * ((this.snx * dirNx) + (this.sny * dirNy))
             }
 
-            if (spawnDist > 200) {
-                score = 0
-            }
+            // if (spawnDist > 200) {
+            //     score = 0
+            // }
             this.checkIfDirBlocked(dirNx, dirNy)
             if (this.return) {
                 return;
