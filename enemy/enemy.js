@@ -91,44 +91,46 @@ export default class Enemy {
         this.game.projectiles.push(new Projectile(this.x + this.width / 2, this.y + this.height / 2, aimAngle, speed, damage, "enemyBomb", this.game))
     }
     findBestDirection(directions) {
-        let bestScore = null
-        let score = 0
-        let dir = 0
-        for (let i = 0; i < directions; i++) {
-            const dirNx = Math.sin(dir)
-            const dirNy = Math.cos(dir)
-            let spawnDx = this.x - this.spawnX
-            let spawnDy = this.y - this.spawnY
-            let spawnDist = Math.hypot(spawnDx, spawnDy)
-            this.return = false
-            score = (dirNx * this.targetNx) + (dirNy * this.targetNy)
-            if (this.distance < this.orbitDist) {
-                score = 1 - (Math.abs(score))
-                score += score * ((this.snx * dirNx) + (this.sny * dirNy))
-            }
+        const spawnDx = this.spawnX - this.x;
+        const spawnDy = this.spawnY - this.y;
+        const spawnDist = Math.hypot(spawnDx, spawnDy);
+        let toSpawnNx = 0;
+        let toSpawnNy = 0;
+        if (spawnDist > 0) {
+            toSpawnNx = spawnDx / spawnDist;
+            toSpawnNy = spawnDy / spawnDist;
+        }
 
-            // if (spawnDist > 200) {
-            //     score = 0
-            // }
-            this.checkIfDirBlocked(dirNx, dirNy)
-            if (this.return) {
-                return;
+        let bestScore = null;
+        let dir = 0;
+        for (let i = 0; i < directions; i++) {
+            const dirNx = Math.sin(dir);
+            const dirNy = Math.cos(dir);
+            this.return = false;
+            let score = (dirNx * this.targetNx) + (dirNy * this.targetNy);
+            if (this.distance < this.orbitDist) {
+                score = 1 - Math.abs(score);
+                score += score * ((this.snx * dirNx) + (this.sny * dirNy));
+            }
+            if (spawnDist > 300) {
+                const spawnScore = (dirNx * toSpawnNx) + (dirNy * toSpawnNy);
+                score += spawnScore;
+            }
+            this.checkIfDirBlocked(dirNx, dirNy);
+            if (!this.return) {
+                if (score > bestScore) {
+                    bestScore = score;
+                    this.bestDir = dir;
+                }
             }
             if (this.avoidDist > 0) {
-                this.strokestyle = "red"
+                this.strokestyle = "red";
             } else {
-                this.strokestyle = "blue"
+                this.strokestyle = "blue";
             }
-            if (score > bestScore) {
-                bestScore = score
-                this.bestDir = dir
-            }
-            const scoreLength = 45 + (score * 15)
-            // this.directions.push({ length: scoreLength, dirNx: dirNx, dirNy: dirNy })
-            dir += Math.PI * 2 / directions
+            dir += Math.PI * 2 / directions;
         }
     }
-
     checkIfDirBlocked(dirNx, dirNy) {
         const enemies = this.game.enemies
         let avoidDx = 0
@@ -175,7 +177,7 @@ export default class Enemy {
     render(ctx, camera) {
         ctx.beginPath();
         ctx.fillStyle = "white";
-        ctx.arc(this.spawnX - camera.x, this.spawnY - camera.y, 200, 0, 2 * Math.PI);
+        ctx.arc(this.spawnX - camera.x, this.spawnY - camera.y, 300, 0, 2 * Math.PI);
         ctx.stroke();
         ctx.save();
         this.brightness += 0.1 * (100 - this.brightness)
