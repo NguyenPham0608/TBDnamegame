@@ -17,3 +17,10 @@ function convertAngle(value, to) {
 function containsAnyPattern(str, patterns) {
     return patterns.some(pattern => str.includes(pattern));
 }
+
+function getValue(deltaTime) {
+    const base = 0.7;
+    const referenceDelta = 1 / 60;
+    const k = 0.24; // tweak this to fine-tune
+    return base * Math.pow(referenceDelta / deltaTime, k);
+}

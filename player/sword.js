@@ -6,7 +6,7 @@ export default class Sword {
         this.armLength = 20;
         this.swingSpeed = 0;
         this.image = new Image();
-        this.image.src = 'img/sword2.svg';
+        this.image.src = 'img/projectile/1.svg';
         this.targetDir = -150;
         this.swingDelay = 0;
         this.swingDir = 150;
@@ -19,12 +19,16 @@ export default class Sword {
         this.hitEnemies = new Set();
         this.swingHitbox = null; // Holds the wide hitbox during swing
         this.deltaTime = 0
+        this.totalDamage = 0
     }
 
     update(input) {
-
+        console.log(this.totalDamage)
+        if (this.totalDamage > 100) {
+            this.totalDamage = 100
+        }
         this.deltaTime = this.player.game.deltaTime
-        console
+
         const worldMouseX = input.mouseX + this.player.game.camera.x;
         const worldMouseY = input.mouseY + this.player.game.camera.y;
         this.mouse = {
@@ -47,7 +51,7 @@ export default class Sword {
         }
     }
 
-    processSwing(input) {
+    processAttack(input) {
         if (!this.player.game.editorMode) {
             this.swingDelay--;
             if (input.keys.Space || input.mouseDown) {
@@ -55,12 +59,18 @@ export default class Sword {
                     this.beginSwing(this.targetDir / -150);
                 }
             } else {
-                this.returnSword();
+                if (input.keys.KeyX) {
+                    if (this.totalDamage >= 100) {
+                        this.totalDamage = 0
+                    }
+                } else {
+                    this.returnSword();
+                }
             }
             this.relaxSword();
             this.swingDir += this.swingSpeed * 30 * this.deltaTime;
             this.swingSpeed += (this.targetDir - this.swingDir) / 10;
-            this.swingSpeed *= (1 / (60 * this.deltaTime)) * 0.75;
+            this.swingSpeed *= getValue(this.deltaTime);
         }
     }
 
@@ -123,7 +133,7 @@ export default class Sword {
         ctx.save();
         ctx.translate(this.player.x + this.player.width / 2 - camera.x, this.player.y + this.player.height / 2 - camera.y);
         ctx.rotate(this.mouseAngle);
-        this.processSwing(input);
+        this.processAttack(input);
         ctx.rotate(this.degreesToRadians(this.swingDir * 0.6));
         ctx.translate(this.armLength, 0);
         ctx.rotate(this.degreesToRadians(this.swingDir * 0.4));

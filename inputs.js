@@ -22,7 +22,8 @@ export default class InputHandler {
             Digit7: false,
             Digit8: false,
             Digit9: false,
-            KeyL: false
+            KeyL: false,
+            KeyX: false
         };
         this.mouseX = 0;
         this.mouseY = 0;

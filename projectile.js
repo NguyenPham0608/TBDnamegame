@@ -1,5 +1,5 @@
 export default class Projectile {
-    constructor(x, y, direction, speed, damage, game) {
+    constructor(x, y, direction, speed, damage, type, game) {
         this.x = x;
         this.y = y;
         this.direction = direction;
@@ -7,8 +7,15 @@ export default class Projectile {
         this.game = game;
         this.camera = game.camera
         this.rotate = 0
-        this.img = new Image()
-        this.img.src = "img/enemy.svg"
+        this.images = []
+        for (let i = 0; i < 2; i++) {
+            const img = new Image()
+            img.src = `img/projectile/${i}.svg`
+            this.images.push(img)
+        }
+        console.log(this.images)
+        this.damage = damage
+        this.type = type
     }
     update() {
         this.rotate += 10
@@ -26,15 +33,20 @@ export default class Projectile {
         }
     }
     render(ctx, camera) {
-        ctx.fillStyle = "red";
-        ctx.save()
-        ctx.translate(this.x - camera.x, this.y - camera.y)
-        ctx.rotate(this.rotate * Math.PI / 180)
-        // ctx.fillRect(-5, -5, 10, 10);
-        ctx.filter = "sepia(1) saturate(4) hue-rotate(-20deg)";
-        ctx.drawImage(this.img, -this.img.width / 6, -this.img.height / 6, this.img.width / 3, this.img.height / 3)
-        ctx.filter = "none"
-        ctx.restore()
+        if (this.type == "enemyBomb") {
+            ctx.fillStyle = "red";
+            const image = this.images[0]
+            ctx.save()
+            ctx.translate(this.x - camera.x, this.y - camera.y)
+            ctx.rotate(this.rotate * Math.PI / 180)
+            // ctx.fillRect(-5, -5, 10, 10);
+            ctx.filter = "sepia(1) saturate(4) hue-rotate(-20deg)";
+            ctx.drawImage(image, -image.width / 6, -image.height / 6, image.width / 3, image.height / 3)
+            ctx.filter = "none"
+            ctx.restore()
+        } else {
+
+        }
     }
     delete() {
         this.game.projectiles.splice(this.game.projectiles.indexOf(this), 1);

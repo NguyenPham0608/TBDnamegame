@@ -39,6 +39,8 @@ export default class Enemy {
         this.directions = []
         this.return = false
         this.strokestyle = "blue"
+        this.spawnX = this.x
+        this.spawnY = this.y
     }
     particleExplosion() {
         for (let i = 0; i < 50; i++) {
@@ -86,7 +88,7 @@ export default class Enemy {
         const dx = ((player.x - camera.x) - (this.x - camera.x))
         const dy = ((player.y - camera.y) - (this.y - camera.y))
         const aimAngle = Math.atan2(dy, dx) + ((4 * Math.PI) * ((1 / accuracy) - 1 / 100))
-        this.game.projectiles.push(new Projectile(this.x + this.width / 2, this.y + this.height / 2, aimAngle, speed, damage, this.game))
+        this.game.projectiles.push(new Projectile(this.x + this.width / 2, this.y + this.height / 2, aimAngle, speed, damage, "enemyBomb", this.game))
     }
     findBestDirection(directions) {
         let bestScore = null
@@ -95,11 +97,18 @@ export default class Enemy {
         for (let i = 0; i < directions; i++) {
             const dirNx = Math.sin(dir)
             const dirNy = Math.cos(dir)
+            let spawnDx = this.x - this.spawnX
+            let spawnDy = this.y - this.spawnY
+            let spawnDist = Math.hypot(spawnDx, spawnDy)
             this.return = false
             score = (dirNx * this.targetNx) + (dirNy * this.targetNy)
             if (this.distance < this.orbitDist) {
                 score = 1 - (Math.abs(score))
                 score += score * ((this.snx * dirNx) + (this.sny * dirNy))
+            }
+
+            if (spawnDist > 200) {
+                score = 0
             }
             this.checkIfDirBlocked(dirNx, dirNy)
             if (this.return) {
@@ -142,8 +151,10 @@ export default class Enemy {
                         }
                     }
                 }
+
             }
         }
+
         this.avoidDist = null
     }
     moveWithMomentum(percent, nx, ny) {
@@ -162,6 +173,10 @@ export default class Enemy {
     }
 
     render(ctx, camera) {
+        ctx.beginPath();
+        ctx.fillStyle = "white";
+        ctx.arc(this.spawnX - camera.x, this.spawnY - camera.y, 200, 0, 2 * Math.PI);
+        ctx.stroke();
         ctx.save();
         this.brightness += 0.1 * (100 - this.brightness)
 
@@ -192,13 +207,14 @@ export default class Enemy {
         this.brightness = 900;
         // this.game.camera.screenShake(2);
         this.health -= 20
+        this.player.sword.totalDamage += 20
         if (this.game.player.sword.attackDir) {
             this.sx = 10 * Math.sin(this.game.player.sword.attackDir - Math.PI / 2)
             this.sy = -10 * Math.cos(this.game.player.sword.attackDir - Math.PI / 2)
         }
         if (this.health <= 0) {
             if (this.timeleft < 0) {
-                this.timeleft = 50
+                this.timeleft = 10
 
             }
             this.brightness = 0

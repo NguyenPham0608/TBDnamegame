@@ -32,6 +32,7 @@ export default class Game {
             new Array(64).fill().map(() => new Array(64).fill(0))  // Layer 2: empty
         ];
 
+
         this.tileRecipes = [
             [],
             ['0110', "0100"],
@@ -388,9 +389,10 @@ export default class Game {
             } else {
                 if (this.input.mouseDown && !this.prevMouseDown) {
                     this.paintTile(tileGridX, tileGridY);
-                    this.prevMouseDown = this.input.mouseDown;
                 }
             }
+            this.prevMouseDown = this.input.mouseDown;
+
 
 
             if (this.input.keys.KeyW) this.camera.realY -= 10;
@@ -454,9 +456,16 @@ export default class Game {
         window.addEventListener('resize', resizeCanvas);
     }
 }
-
 const game = new Game();
-game.start();
+
+fetch("./level/level1.txt")
+    .then(response => response.text())
+    .then(levelCode => {
+        const game = new Game();
+        game.load(levelCode);
+        game.start();
+    });
+
 
 function getRandomArbitrary(min, max) {
     return Math.random() * (max - min) + min;
