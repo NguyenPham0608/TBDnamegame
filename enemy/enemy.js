@@ -34,7 +34,8 @@ export default class Enemy {
         this.speed = getRandomArbitrary(1, 3);
         this.player = this.game.player;
         this.avoidDist = 0;
-        this.z = 0;
+        this.sz = 0
+        this.z = -10;
         this.fireTime = -1;
         this.directions = [];
         this.return = false;
@@ -82,13 +83,21 @@ export default class Enemy {
         const playerToSpawnDy = this.player.y - this.spawnY;
         const playerToSpawnDist = Math.hypot(playerToSpawnDx, playerToSpawnDy);
         if (!this.provoked && playerToSpawnDist < 300) {
+            this.sz = -3
             this.provoked = true;
-        }
 
+        }
+        console.log(this.z)
         this.findBestDirection(30);
         this.moveWithMomentum(0.05, Math.sin(this.bestDir), Math.cos(this.bestDir));
         this.bounce += 0.2;
-        this.z = Math.abs(8 * Math.sin(this.bounce));
+        this.sz += 0.2
+        this.z += this.sz
+        if (this.z > 0) {
+            this.sz = 0
+            this.z = 0
+        }
+
         this.hitbox = { left: this.x, top: this.y + this.z, right: this.x + this.width, bottom: this.y + this.z + this.height };
     }
     fire(speed, damage, accuracy) {
