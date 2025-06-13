@@ -197,10 +197,10 @@ export default class Enemy {
     }
 
     render(ctx, camera) {
-        ctx.beginPath();
-        ctx.fillStyle = "white";
-        ctx.arc(this.spawnX - camera.x, this.spawnY - camera.y, 300, 0, 2 * Math.PI);
-        ctx.stroke();
+        // ctx.beginPath();
+        // ctx.fillStyle = "white";
+        // ctx.arc(this.spawnX - camera.x, this.spawnY - camera.y, 300, 0, 2 * Math.PI);
+        // ctx.stroke();
         ctx.save();
         this.brightness += 0.1 * (100 - this.brightness);
 
