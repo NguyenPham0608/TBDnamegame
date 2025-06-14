@@ -23,7 +23,6 @@ export default class Sword {
     }
 
     update(input) {
-        console.log(this.totalDamage)
         if (this.totalDamage > 100) {
             this.totalDamage = 100
         }

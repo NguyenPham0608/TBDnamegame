@@ -42,6 +42,8 @@ export default class Enemy {
         this.strokestyle = "blue";
         this.spawnX = this.x;
         this.spawnY = this.y;
+        this.spawnNx = 0;
+        this.spawnNy = 0;
         this.provoked = false; // Initialize provoked state
     }
     particleExplosion() {
@@ -59,8 +61,10 @@ export default class Enemy {
             this.kill();
         }
         const random = getRandomArbitrary(0, 300);
-        if (random < 1) {
-            this.fireTime = 30;
+        if (this.provoked) {
+            if (random < 1) {
+                this.fireTime = 30;
+            }
         }
 
         if (this.fireTime == 0) {
@@ -77,6 +81,15 @@ export default class Enemy {
             this.targetNx /= this.distance;
             this.targetNy /= this.distance;
         }
+        this.spawnNx = this.spawnX - this.x;
+        this.spawnNy = this.spawnY - this.y;
+        const spawnDist = Math.hypot(this.spawnNx, this.spawnNy);
+        if (spawnDist > 0) { // Prevent division by zero
+            this.spawnNx /= spawnDist;
+            this.spawnNy /= spawnDist;
+        }
+        console.log(this.spawnX)
+
 
         // Check if player is within 300px of spawn point to provoke
         const playerToSpawnDx = this.player.x - this.spawnX;
@@ -88,7 +101,7 @@ export default class Enemy {
 
         }
         console.log(this.z)
-        this.findBestDirection(30);
+        this.findBestDirection(12);
         this.moveWithMomentum(0.05, Math.sin(this.bestDir), Math.cos(this.bestDir));
         this.bounce += 0.2;
         this.sz += 0.2
@@ -111,6 +124,7 @@ export default class Enemy {
     findBestDirection(directions) {
         const spawnDx = this.spawnX - this.x;
         const spawnDy = this.spawnY - this.y;
+        const spawnAngle = Math.atan2(spawnDy, spawnDx);
         const spawnDist = Math.hypot(spawnDx, spawnDy);
         let toSpawnNx = 0;
         let toSpawnNy = 0;
@@ -124,6 +138,7 @@ export default class Enemy {
         for (let i = 0; i < directions; i++) {
             const dirNx = Math.sin(dir);
             const dirNy = Math.cos(dir);
+
             this.return = false;
             let score = 0;
 
@@ -140,7 +155,7 @@ export default class Enemy {
                     const pullStrength = Math.min((spawnDist - 250) / 50, 1);
                     score = pullStrength * ((dirNx * toSpawnNx) + (dirNy * toSpawnNy));
                 } else {
-                    score = getRandomArbitrary(-0.5, 0.5);
+                    score = getRandomArbitrary(-1, 1);
                 }
             }
 
@@ -173,7 +188,7 @@ export default class Enemy {
                     avoidDx = avoidDx - this.x;
                     avoidDy = avoidDy - this.y;
                     this.avoidDist = Math.hypot(avoidDx, avoidDy);
-                    if (this.avoidDist < 55) {
+                    if (this.avoidDist < 65) {
                         this.avoidDist = ((avoidDx * dirNx) + (avoidDy * dirNy)) / this.avoidDist;
                         if (this.avoidDist > 0.7) {
                             this.return = true;
@@ -197,10 +212,10 @@ export default class Enemy {
     }
 
     render(ctx, camera) {
-        // ctx.beginPath();
-        // ctx.fillStyle = "white";
-        // ctx.arc(this.spawnX - camera.x, this.spawnY - camera.y, 300, 0, 2 * Math.PI);
-        // ctx.stroke();
+        ctx.beginPath();
+        ctx.fillStyle = "white";
+        ctx.arc(this.spawnX - camera.x, this.spawnY - camera.y, 300, 0, 2 * Math.PI);
+        ctx.stroke();
         ctx.save();
         this.brightness += 0.1 * (100 - this.brightness);
 
