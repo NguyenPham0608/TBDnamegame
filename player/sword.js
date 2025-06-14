@@ -1,8 +1,10 @@
 import Swish from "./swish.js";
+import Projectile from "../projectile.js";
 
 export default class Sword {
     constructor(player) {
         this.player = player;
+        this.game = player.game
         this.armLength = 20;
         this.swingSpeed = 0;
         this.image = new Image();
@@ -19,7 +21,8 @@ export default class Sword {
         this.hitEnemies = new Set();
         this.swingHitbox = null; // Holds the wide hitbox during swing
         this.deltaTime = 0
-        this.totalDamage = 0
+        this.totalDamage = 100
+        this.prevKeyX = false
     }
 
     update(input) {
@@ -58,19 +61,26 @@ export default class Sword {
                     this.beginSwing(this.targetDir / -150);
                 }
             } else {
-                if (input.keys.KeyX) {
+                if (input.keys.KeyX && !this.prevKeyX) {
                     if (this.totalDamage >= 100) {
-                        this.totalDamage = 0
+                        // this.totalDamage = 0
+                        this.combo1()
+                        this.prevKeyX = input.keys.KeyX
                     }
                 } else {
                     this.returnSword();
                 }
             }
+            this.prevKeyX = input.keys.KeyX
+
             this.relaxSword();
             this.swingDir += this.swingSpeed * 30 * this.deltaTime;
             this.swingSpeed += (this.targetDir - this.swingDir) / 10;
             this.swingSpeed *= getValue(this.deltaTime);
         }
+    }
+    combo1() {
+        this.game.projectiles.push(new Projectile(this.player.x + this.player.width / 2, this.player.y + this.player.height / 2, this.mouseAngle, 2, this.totalDamage, "combo1", this.game));
     }
 
     beginSwing(dx) {

@@ -88,7 +88,6 @@ export default class Enemy {
             this.spawnNx /= spawnDist;
             this.spawnNy /= spawnDist;
         }
-        console.log(this.spawnX)
 
 
         // Check if player is within 300px of spawn point to provoke
@@ -100,7 +99,6 @@ export default class Enemy {
             this.provoked = true;
 
         }
-        console.log(this.z)
         this.findBestDirection(12);
         this.moveWithMomentum(0.05, Math.sin(this.bestDir), Math.cos(this.bestDir));
         this.bounce += 0.2;
