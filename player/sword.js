@@ -21,11 +21,18 @@ export default class Sword {
         this.hitEnemies = new Set();
         this.swingHitbox = null; // Holds the wide hitbox during swing
         this.deltaTime = 0
+        this.face = 1
         this.totalDamage = 100
         this.prevKeyX = false
     }
 
     update(input) {
+        console.log(this.face)
+        if (Math.abs(this.mouseAngle) > Math.PI / 2) {
+            this.face = -1
+        } else {
+            this.face = 1
+        }
         if (this.totalDamage > 100) {
             this.totalDamage = 100
         }
@@ -80,6 +87,7 @@ export default class Sword {
         }
     }
     combo1() {
+
         this.game.projectiles.push(new Projectile(this.player.x + this.player.width / 2, this.player.y + this.player.height / 2, this.mouseAngle, 2, this.totalDamage, "combo1", this.game));
     }
 
