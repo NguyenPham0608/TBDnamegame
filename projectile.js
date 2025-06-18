@@ -24,12 +24,14 @@ export default class Projectile {
         this.type = type
         this.t = 0
         this.brightness = 100
+        this.stop = false
     }
     update() {
         this.t++
         if (this.type == "enemyBomb") {
             this.rotate += 10
-
+            this.x += Math.cos(this.direction) * this.speed;
+            this.y += Math.sin(this.direction) * this.speed;
 
             if (this.x - this.camera.x < 0 || this.x - this.camera.x > this.game.canvas.width || this.y - this.game.camera.y < 0 || this.y - this.game.camera.y > this.game.canvas.height) {
                 this.delete()
@@ -42,27 +44,39 @@ export default class Projectile {
                 this.delete()
             }
         } else if (this.type == "combo1") {
-            if (this.t < 50) {
-                const upSpeed = 3
-                this.direction = -Math.PI / 2
-                this.x += 0.1 * (this.originalX + 70 - this.x)
-                this.y += 0.1 * (this.originalY - 70 - this.y)
-                this.brightness += 0.1 * (300 - this.brightness)
-            } else {
-                this.direction = this.oringinalDirection + (Math.PI / 4)
-                this.sx += Math.cos(this.direction) * this.speed;
-                this.sy += Math.sin(this.direction) * this.speed;
-                this.brightness += 0.1 * (100 - this.brightness)
-            }
-            this.x += this.sx
-            this.y += this.sy
-            this.rotate = this.direction
-            this.x += Math.cos(this.direction) * this.speed
-            this.y += Math.sin(this.direction) * this.speed;
-            if (this.x - this.camera.x < 0 || this.x - this.camera.x > this.game.canvas.width || this.y - this.game.camera.y < 0 || this.y - this.game.camera.y > this.game.canvas.height) {
-                this.delete()
-            }
+            if (!this.stop) {
+                if (this.t < 50) {
+                    const upSpeed = 3
+                    this.direction = -Math.PI / 2
+                    this.x += 0.1 * (this.originalX + 70 - this.x)
+                    this.y += 0.1 * (this.originalY - 70 - this.y)
+                    this.brightness += 0.1 * (300 - this.brightness)
+                } else {
+                    this.direction = this.oringinalDirection + (Math.PI / 4)
+                    if (!this.stop) {
+                        this.sx += Math.cos(this.direction) * this.speed;
+                        this.sy += Math.sin(this.direction) * this.speed;
+                    }
+                    if (this.y > this.originalY) {
+                        if (!this.stop) {
+                            this.sy = 0
+                            // this.y = this.originalY
+                            this.stop = true
+                        }
+                    }
 
+                    this.brightness += 0.1 * (100 - this.brightness)
+                }
+                this.x += this.sx
+                this.y += this.sy
+                this.rotate = this.direction
+                this.x += Math.cos(this.direction) * this.speed
+                this.y += Math.sin(this.direction) * this.speed;
+                if (this.x - this.camera.x < 0 || this.x - this.camera.x > this.game.canvas.width || this.y - this.game.camera.y < 0 || this.y - this.game.camera.y > this.game.canvas.height) {
+                    this.delete()
+                }
+
+            }
         }
     }
     render(ctx, camera) {
